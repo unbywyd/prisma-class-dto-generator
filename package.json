@@ -20,15 +20,14 @@
     "class-validator",
     "class-transformer",
     "prisma-generator",
-    "prisma-class-dto-generator"
+    "prisma-dto",
+    "DTO"
   ],
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^6.0.1",
     "@prisma/generator-helper": "^6.0.1",
     "@prisma/internals": "^6.0.1",
-    "class-validator": "^0.14.1",
-    "class-validator-jsonschema": "^5.0.1",
     "pluralize": "^8.0.0",
     "prettier": "^2.8.8",
     "ts-morph": "^22.0.0",
@@ -40,6 +39,11 @@
     "@types/prettier": "^2.7.3",
     "prisma": "^6.0.1",
     "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "class-validator-jsonschema": "^5.0.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1"
   },
   "bugs": {
     "url": "https://www.npmjs.com/package/prisma-class-dto-generator/issues"

@@ -9,7 +9,7 @@ import {
   Project,
   SourceFile,
 } from 'ts-morph';
-import { GeneratorDTOConfig } from './prisma-generator';
+import { PrismaClassDTOGeneratorConfig } from './prisma-generator';
 
 function generateUniqueImports(sourceFile: SourceFile, imports: string[], moduleSpecifier: string) {
   let existingImport = sourceFile.getImportDeclaration(moduleSpecifier);
@@ -31,7 +31,7 @@ export const generateModelsIndexFile = (
   prismaClientDmmf: PrismaDMMF.Document,
   project: Project,
   outputDir: string,
-  config: GeneratorDTOConfig,
+  config: PrismaClassDTOGeneratorConfig,
 ) => {
   const modelsBarrelExportSourceFile = project.createSourceFile(
     path.resolve(outputDir, 'models', 'index.ts'),
@@ -329,6 +329,7 @@ export async function generateDecoratorsFile(outputDir: string) {
       console.error('Error resolving type for property:' + String(propertyKey), err);
     });
   }
+    
 
   export function Entity(typeFunction: () => Promise<Function> | Function, isArray: boolean = false): PropertyDecorator {
     return function (target: Object, propertyKey: string | symbol) {
@@ -359,6 +360,7 @@ export async function generateDecoratorsFile(outputDir: string) {
 export type FieldDirectives = {
   filterable: boolean;
   listable: boolean;
+  pagination: boolean;
   orderable: boolean;
   exclude: 'input' | 'output';
 };
@@ -368,11 +370,13 @@ export function getFieldDirectives(documentation: string | undefined): FieldDire
       filterable: false,
       listable: false,
       orderable: false,
+      pagination: false,
       exclude: undefined,
     }
   }
   const directives: FieldDirectives = {
     filterable: false,
+    pagination: false,
     listable: false,
     orderable: false,
     exclude: undefined,
@@ -381,6 +385,7 @@ export function getFieldDirectives(documentation: string | undefined): FieldDire
   directives.filterable = /@filterable/.test(documentation);
   directives.listable = /@listable/.test(documentation);
   directives.orderable = /@orderable/.test(documentation);
+  directives.pagination = /@pagination/.test(documentation);
   // @exclude (space +) input | output
   const excludeMatch = documentation.match(/@exclude\s+(input|output)/);
   if (excludeMatch) {

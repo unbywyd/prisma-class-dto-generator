@@ -2,11 +2,11 @@ import { Project } from "ts-morph";
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 import path from 'path';
 import { generateEnumImports, generateHelpersImports, getDecoratorsByFieldType, getFieldDirectives, getTSDataTypeFromFieldType, shouldImportHelpers } from "./helpers";
-import { ExtendedField } from "./generate-class";
-import { OIListModelConfig } from "./prisma-generator";
+import { PrismaClassDTOGeneratorField } from "./generate-class";
+import { PrismaClassDTOGeneratorListModelConfig } from "./prisma-generator";
 
 export function generateListDTO(
-    config: OIListModelConfig,
+    config: PrismaClassDTOGeneratorListModelConfig,
     project: Project,
     dirPath: string,
     model: PrismaDMMF.Model,
@@ -15,6 +15,10 @@ export function generateListDTO(
     const sourceFile = project.createSourceFile(filePath, undefined, {
         overwrite: true,
     });
+
+    const directives = getFieldDirectives(model.documentation);
+    const isOrderable = config?.orderable || directives.orderable;
+    const hasPagination = config?.pagination || directives.pagination;
 
     sourceFile.addImportDeclaration({
         moduleSpecifier: 'class-transformer',
@@ -43,7 +47,7 @@ export function generateListDTO(
     const classDeclaration = sourceFile.addClass({
         name: `QueryList${model.name}DTO`,
         isExported: true,
-        properties: !config?.pagination ? [] : [
+        properties: !hasPagination ? [] : [
             {
                 name: 'take',
                 type: 'number',
@@ -88,7 +92,7 @@ export function generateListDTO(
     });
 
     const modelFieldsKeys = model.fields.map((field) => field.name);
-    const customFields = filters.filter((filter) => typeof filter !== 'string' && !modelFieldsKeys.includes(filter.name)) as Array<ExtendedField>;
+    const customFields = filters.filter((filter) => typeof filter !== 'string' && !modelFieldsKeys.includes(filter.name)) as Array<PrismaClassDTOGeneratorField>;
 
     if (shouldImportHelpers(customFields)) {
         generateHelpersImports(sourceFile, ['getEnumValues']);
@@ -113,7 +117,7 @@ export function generateListDTO(
         });
     });
 
-    if (config?.orderable) {
+    if (isOrderable) {
         sourceFile.addImportDeclaration({
             moduleSpecifier: '@prisma/client',
             namedImports: ['Prisma'],
@@ -155,7 +159,7 @@ export function generateListDTO(
         name: `OutputList${model.name}DTO`,
         isExported: true,
         properties: [
-            ...(config.pagination ? [
+            ...(hasPagination ? [
                 {
                     name: 'take',
                     type: 'number',

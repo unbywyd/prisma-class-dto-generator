@@ -15,17 +15,17 @@ import {
   shouldImportPrisma,
   getFieldDirectives,
 } from './helpers';
-import { GeneratorDTOConfig } from './prisma-generator';
+import { PrismaClassDTOGeneratorConfig } from './prisma-generator';
 import { generateListDTO } from './generate-list';
 import { generateExtraModel } from './generate-extra';
 import { generateExtraEnum } from './generate-extra-enums';
 
-export type ExtendedField = PrismaDMMF.Field & {
+export type PrismaClassDTOGeneratorField = PrismaDMMF.Field & {
   isExtra?: boolean;
   isList?: boolean;
 };
 export default async function generateClass(
-  config: GeneratorDTOConfig,
+  config: PrismaClassDTOGeneratorConfig,
   project: Project,
   outputDir: string,
   model: PrismaDMMF.Model,
@@ -64,12 +64,12 @@ export default async function generateClass(
 }
 
 function generateDTO(
-  config: GeneratorDTOConfig['input'] | GeneratorDTOConfig['output'],
+  config: PrismaClassDTOGeneratorConfig['input'] | PrismaClassDTOGeneratorConfig['output'],
   project: Project,
   dirPath: string,
   model: PrismaDMMF.Model,
   dtoType: 'Input' | 'Output',
-  mainConfig: GeneratorDTOConfig,
+  mainConfig: PrismaClassDTOGeneratorConfig,
 ) {
   const filePath = path.resolve(dirPath, `${dtoType}${model.name}DTO.model.ts`);
   const sourceFile = project.createSourceFile(filePath, undefined, {
@@ -141,7 +141,7 @@ function generateDTO(
 
   // Отвечает за импорт
   referenceFields.forEach((field) => {
-    const relatedDTOName = (field as ExtendedField).isExtra ? `Extra${field.type}DTO` : `${dtoType}${field.type}DTO`;
+    const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${dtoType}${field.type}DTO`;
     const relativePath = `./${relatedDTOName}.model`;
 
     if (isFieldExclude(field as PrismaDMMF.Field)) {
@@ -184,7 +184,7 @@ function generateDTO(
     let type = getTSDataTypeFromFieldType(field);
     if (field.relationName) {
       const isArray = field.isList;
-      const relatedDTOName = (field as ExtendedField).isExtra ? `Extra${field.type}DTO` : `${dtoType}${field.type}DTO`; // Генерация корректного имени
+      const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${dtoType}${field.type}DTO`; // Генерация корректного имени
       const relativePath = `./${relatedDTOName}.model`; // Генерация пути к DTO
       type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
       decorators.push({

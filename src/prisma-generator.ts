@@ -2,14 +2,14 @@ import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { getDMMF, parseEnvValue } from '@prisma/internals';
 import { promises as fs } from 'fs';
 import path from 'path';
-import generateClass, { ExtendedField } from './generate-class';
+import generateClass, { PrismaClassDTOGeneratorField } from './generate-class';
 import generateEnum from './generate-enum';
 import { generateHelpersIndexFile } from './generate-helpers';
 import { generateDecoratorsFile, generateEnumsIndexFile, generateModelsIndexFile } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
 
-export type OIConfig = {
+export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
   excludeModelFields?: {
     [modelName: string]: string[]
@@ -20,23 +20,23 @@ export type OIConfig = {
   includeRelations?: boolean;
   extendModels?: {
     [modelName: string]: {
-      fields: Array<ExtendedField>
+      fields: Array<PrismaClassDTOGeneratorField>
     }
   }
 };
-export type OIListModelConfig = {
+export type PrismaClassDTOGeneratorListModelConfig = {
   pagination?: true,
   itemsModePrefix?: string,
-  filters?: Array<string | ExtendedField>,
+  filters?: Array<string | PrismaClassDTOGeneratorField>,
   orderable?: boolean
 };
-export type GeneratorDTOConfig = {
-  input: OIConfig;
-  output: OIConfig;
+export type PrismaClassDTOGeneratorConfig = {
+  input: PrismaClassDTOGeneratorModelConfig;
+  output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
   list?: {
     includeModels: true | {
-      [modelName: string]: OIListModelConfig
+      [modelName: string]: PrismaClassDTOGeneratorListModelConfig
     }
   },
   extra?: {
@@ -48,13 +48,13 @@ export type GeneratorDTOConfig = {
     models: true | {
       [modelName: string]: {
         type: "input" | "output",
-        fields: Array<ExtendedField>
+        fields: Array<PrismaClassDTOGeneratorField>
       }
     }
   }
 };
 
-async function parseConfig(absolutePath: string): Promise<GeneratorDTOConfig> {
+async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGeneratorConfig> {
 
   const defaultValues = {
     input: {

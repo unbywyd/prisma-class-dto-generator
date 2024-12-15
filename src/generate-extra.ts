@@ -2,7 +2,7 @@ import { Project, OptionalKind, PropertyDeclarationStructure } from "ts-morph";
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 
 import path from "path";
-import { GeneratorDTOConfig } from "./prisma-generator";
+import { PrismaClassDTOGeneratorConfig } from "./prisma-generator";
 import {
     getDecoratorsByFieldType,
     getDecoratorsImportsByType,
@@ -16,7 +16,7 @@ import {
     generateHelpersImports,
     generateEnumImports
 } from "./helpers";
-import { ExtendedField } from "./generate-class";
+import { PrismaClassDTOGeneratorField } from "./generate-class";
 
 type ExtraField = Partial<PrismaDMMF.Field> & {
     name: string;
@@ -26,7 +26,7 @@ type ExtraField = Partial<PrismaDMMF.Field> & {
 };
 
 export function generateExtraModel(
-    config: GeneratorDTOConfig,
+    config: PrismaClassDTOGeneratorConfig,
     project: Project,
     outputDir: string,
     modelName: string,
@@ -82,7 +82,7 @@ export function generateExtraModel(
         if (field.relationName) {
             // Генерируем имя связанного DTO
             // Для extra моделей используется префикс "Extra"
-            const relatedDTOName = (field as ExtendedField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
+            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
             const relativePath = `./${relatedDTOName}.model`;
 
             if (!relationImports.has(relatedDTOName)) {
@@ -121,7 +121,7 @@ export function generateExtraModel(
         let type = getTSDataTypeFromFieldType(field as any);
         if (field.relationName) {
             const isArray = field.isList;
-            const relatedDTOName = (field as ExtendedField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
+            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
             type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
             const relativePath = `./${relatedDTOName}.model`;
             decorators.push({
