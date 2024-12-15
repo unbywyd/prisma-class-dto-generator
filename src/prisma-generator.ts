@@ -82,7 +82,7 @@ export async function generate(options: GeneratorOptions) {
   await fs.mkdir(outputDir, { recursive: true });
   await removeDir(outputDir, true);
 
-  const configRelativeFilePath = options?.generator?.config?.configPath as string;
+  const configRelativeFilePath = options?.generator?.config?.configPath as string || '';
 
   const schemaDir = path.dirname(options.schemaPath);
   const configFilePath = path.resolve(schemaDir, configRelativeFilePath, 'generator-config.json');
