@@ -1,0 +1,49 @@
+{
+  "name": "prisma-class-dto-generator",
+  "version": "6.0.0",
+  "description": "DTO generator for Prisma Client",
+  "bin": {
+    "prisma-class-dto-generator": "lib/generator.js"
+  },
+  "main": "lib/generator.js",
+  "scripts": {
+    "start": "tsc && npx prisma generate"
+  },
+  "author": {
+    "name": "Artyom Gorlovetskiy",
+    "url": "https://github.com/unbywyd"
+  },
+  "keywords": [
+    "prisma",
+    "prisma-client",
+    "prisma-schema",
+    "class-validator",
+    "class-transformer",
+    "prisma-generator",
+    "prisma-class-dto-generator"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.0.1",
+    "@prisma/generator-helper": "^6.0.1",
+    "@prisma/internals": "^6.0.1",
+    "class-validator": "^0.14.1",
+    "class-validator-jsonschema": "^5.0.1",
+    "pluralize": "^8.0.0",
+    "prettier": "^2.8.8",
+    "ts-morph": "^22.0.0",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.31",
+    "@types/pluralize": "0.0.33",
+    "@types/prettier": "^2.7.3",
+    "prisma": "^6.0.1",
+    "typescript": "^5.7.2"
+  },
+  "bugs": {
+    "url": "https://www.npmjs.com/package/prisma-class-dto-generator/issues"
+  },
+  "homepage": "https://www.npmjs.com/package/prisma-class-dto-generator",
+  "private": false
+}
