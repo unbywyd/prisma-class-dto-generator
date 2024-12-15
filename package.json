@@ -1,7 +1,7 @@
 {
   "name": "prisma-class-dto-generator",
   "version": "6.0.0",
-  "description": "DTO generator for Prisma Client",
+  "description": "Generate Prisma DTOs with seamless class-validator and class-transformer integration for TypeScript applications.",
   "bin": {
     "prisma-class-dto-generator": "lib/generator.js"
   },
@@ -11,17 +11,27 @@
   },
   "author": {
     "name": "Artyom Gorlovetskiy",
-    "url": "https://github.com/unbywyd"
+    "url": "https://github.com/unbywyd",
+    "email": "unbywyd@gmail.com"
+  },
+  "engines": {
+    "node": ">=18.19.0"
   },
   "keywords": [
     "prisma",
     "prisma-client",
     "prisma-schema",
-    "class-validator",
-    "class-transformer",
     "prisma-generator",
     "prisma-dto",
-    "DTO"
+    "dto-generator",
+    "class-validator",
+    "class-transformer",
+    "typescript-dto",
+    "jsonschema",
+    "openapi",
+    "type-safe",
+    "decorators",
+    "routing-controllers"
   ],
   "license": "MIT",
   "dependencies": {
@@ -45,9 +55,13 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1"
   },
-  "bugs": {
-    "url": "https://www.npmjs.com/package/prisma-class-dto-generator/issues"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unbywyd/prisma-class-dto-generator.git"
   },
-  "homepage": "https://www.npmjs.com/package/prisma-class-dto-generator",
+  "bugs": {
+    "url": "https://github.com/unbywyd/prisma-class-dto-generator/issues"
+  },
+  "homepage": "https://github.com/unbywyd/prisma-class-dto-generator",
   "private": false
 }
