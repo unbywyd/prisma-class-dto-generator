@@ -1,6 +1,6 @@
 {
   "name": "prisma-class-dto-generator",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "description": "Generate Prisma DTOs with seamless class-validator and class-transformer integration for TypeScript applications.",
   "bin": {
     "prisma-class-dto-generator": "lib/generator.js"

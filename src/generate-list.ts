@@ -125,7 +125,7 @@ export function generateListDTO(
 
         classDeclaration.addProperty({
             name: 'orderBy',
-            type: "String",
+            type: "String",            
             hasQuestionToken: true,
             decorators: [
                 { name: 'IsOptional', arguments: [] }, // Поле необязательное
