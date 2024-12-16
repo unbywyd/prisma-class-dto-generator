@@ -125,12 +125,11 @@ export function generateListDTO(
 
         classDeclaration.addProperty({
             name: 'orderBy',
-            type: `Prisma.${model.name}OrderByWithRelationInput`, // Используем тип Prisma
+            type: "String",
             hasQuestionToken: true,
             decorators: [
                 { name: 'IsOptional', arguments: [] }, // Поле необязательное
-                { name: 'ValidateNested', arguments: [] }, // Проверяем вложенные структуры
-                { name: 'Type', arguments: ['() => Object'] }, // Указываем тип объекта
+                { name: 'IsString', arguments: [] }, // Поле должно быть строкой
                 { name: 'Expose', arguments: [] }, // Экспортируем для API
             ],
         });
