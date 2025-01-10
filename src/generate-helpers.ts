@@ -2,8 +2,8 @@ import { SourceFile } from 'ts-morph';
 
 export function generateHelpersIndexFile(sourceFile: SourceFile) {
   sourceFile.addStatements(/* ts */ `
-    import { IsBoolean, IsNumber, IsString, plainToClass } from "class-validator";
-    import { Expose } from "class-transformer";
+    import { IsBoolean, IsNumber, IsString } from "class-validator";
+    import { Expose, plainToClass} from "class-transformer";
     import { validationMetadatasToSchemas } from "class-validator-jsonschema";
     type EnumLike = Array<unknown> | Record<string, unknown>;
 
