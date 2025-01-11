@@ -315,43 +315,52 @@ export async function generateDecoratorsFile(outputDir: string) {
       },
     }) as PropertyDecorator;
   }
-  
-  function applyAsyncType(typePromise: Promise<any>, target: Object, propertyKey: string | symbol, isArray: boolean) {
-    typePromise.then(type => {
-      if (type) {
-        if (isArray) {
-          FixArrayJsonSchemaReference(type)(target, propertyKey);
-        } else {
-          FixItemJsonSchemaReference(type)(target, propertyKey);
+
+  export class AsyncTypeRegistry {
+    private static tasks: Promise<any>[] = [];
+
+    public static addTask(task: Promise<any>) {
+        this.tasks.push(task);
+    }
+
+    public static async resolveAll(): Promise<void> {
+        if (this.tasks.length > 0) {
+            await Promise.all(this.tasks);
         }
-      }
-    }).catch(err => {
-      console.error('Error resolving type for property:' + String(propertyKey), err);
-    });
+    }
   }
     
+  function ApplyJsonSchemaType(type: any, target: Object, propertyKey: string | symbol, isArray: boolean) {
+      if (type) {
+          if (isArray) {
+              FixArrayJsonSchemaReference(type)(target, propertyKey);
+          } else {
+              FixItemJsonSchemaReference(type)(target, propertyKey);
+          }
+      }
+  }      
 
   export function Entity(typeFunction: () => Promise<Function> | Function, isArray: boolean = false): PropertyDecorator {
     return function (target: Object, propertyKey: string | symbol) {
       ValidateNested({ each: isArray })(target, propertyKey);
 
-      const typeResult = typeFunction();
+       const referenceType = typeFunction();
+        Reflect.defineMetadata("design:itemtype", referenceType, target, propertyKey);
 
-      if (typeResult instanceof Promise) {
-        typeResult.then(type => {
-          Type(() => type)(target, propertyKey);
-          applyAsyncType(Promise.resolve(type), target, propertyKey, isArray);
-        }).catch(err => {
-          console.error("Error resolving type for property :" + String(propertyKey), err);
-        });
-      } else {
-        Type(() => typeResult)(target, propertyKey);
-        applyAsyncType(Promise.resolve(typeResult), target, propertyKey, isArray);
-      }
+        if (referenceType instanceof Promise) {
+            const task = referenceType.then(type => {
+                Type(() => type)(target, propertyKey);
+                ApplyJsonSchemaType(type, target, propertyKey, isArray);
+            }).catch(err => {
+                console.error("Error resolving type for property :" + String(propertyKey), err);
+            });
+            AsyncTypeRegistry.addTask(task);
+        } else {
+            Type(() => referenceType)(target, propertyKey);
+            ApplyJsonSchemaType(referenceType, target, propertyKey, isArray);
+        }
     };
-  }
-
-    `;
+  }`;
 
   const filePath = path.join(outputDir, 'decorators.ts');
   await fs.writeFile(filePath, content);
