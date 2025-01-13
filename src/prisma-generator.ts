@@ -11,6 +11,7 @@ import removeDir from './utils/removeDir';
 
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
+  excludeModels?: string[];
   excludeModelFields?: {
     [modelName: string]: string[]
   };

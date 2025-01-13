@@ -40,6 +40,9 @@ export const generateModelsIndexFile = (
   );
   const excludeModels = config?.excludeModels || [];
 
+  const excludeInputModels = config?.input?.excludeModels || [];
+  const excludeOutputModels = config?.output?.excludeModels || [];
+
   // Сбор имён стандартных моделей
   const modelNames = prismaClientDmmf.datamodel.models.map((model) => model.name).filter((name) => !excludeModels.includes(name));
 
@@ -50,16 +53,27 @@ export const generateModelsIndexFile = (
 
   // Генерация экспортов для стандартных моделей (Input и Output)
   const standardExports = modelNames.flatMap<OptionalKind<ExportDeclarationStructure>>(
-    (modelName) => [
-      {
-        moduleSpecifier: `./Input${modelName}DTO.model`,
-        namedExports: [`Input${modelName}DTO`],
-      },
-      {
-        moduleSpecifier: `./Output${modelName}DTO.model`,
-        namedExports: [`Output${modelName}DTO`],
-      },
-    ],
+    (modelName) => {
+      const exports: OptionalKind<ExportDeclarationStructure>[] = [];
+
+      // Добавляем экспорт Input модели, если она не исключена
+      if (!excludeInputModels.includes(modelName)) {
+        exports.push({
+          moduleSpecifier: `./Input${modelName}DTO.model`,
+          namedExports: [`Input${modelName}DTO`],
+        });
+      }
+
+      // Добавляем экспорт Output модели, если она не исключена
+      if (!excludeOutputModels.includes(modelName)) {
+        exports.push({
+          moduleSpecifier: `./Output${modelName}DTO.model`,
+          namedExports: [`Output${modelName}DTO`],
+        });
+      }
+
+      return exports;
+    }
   );
 
   // Генерация экспортов для "расширенных" моделей

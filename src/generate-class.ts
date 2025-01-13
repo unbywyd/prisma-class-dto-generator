@@ -33,10 +33,16 @@ export default async function generateClass(
   const dirPath = path.resolve(outputDir, 'models');
 
   // Генерация Input DTO
-  generateDTO(config.input, project, dirPath, model, 'Input', config);
+  const excludeInutModels = config.input.excludeModels || [];
+  if (!excludeInutModels.includes(model.name)) {
+    generateDTO(config.input, project, dirPath, model, 'Input', config);
+  }
 
-  // Генерация Output DTO
-  generateDTO(config.output, project, dirPath, model, 'Output', config);
+  const excludeOutputModels = config.output.excludeModels || [];
+  if (!excludeOutputModels.includes(model.name)) {
+    // Генерация Output DTO
+    generateDTO(config.output, project, dirPath, model, 'Output', config);
+  }
 
   const listModels = (config.list?.includeModels || {}) as Record<string, { pagination?: true; filters?: Array<string> }>;
 
@@ -78,9 +84,11 @@ function generateDTO(
 
   const excludeModelFields = config.excludeModelFields?.[model.name] || [];
 
+
+  const excludeModels = [...mainConfig.excludeModels || [], ...config.excludeModels || []];
   const includeOnlyFields = config.includeModelFields?.[model.name] || [];
 
-  const excludeModels = mainConfig.excludeModels || [];
+
   const isFieldExclude = (field: PrismaDMMF.Field) => {
     if (includeOnlyFields.length > 0) {
       return !includeOnlyFields.includes(field.name);
@@ -95,16 +103,38 @@ function generateDTO(
 
 
 
-  const fields = model.fields.filter((field) => {
+  let fields = model.fields.filter((field) => {
     return !isFieldExclude(field);
   });
-
 
   const extendFields = (config.extendModels?.[model.name]?.fields || []).filter((field) => {
     return !isFieldExclude({ name: field.name } as PrismaDMMF.Field);
   });
 
-  const extendFieldsTransformed = extendFields.map((field) => ({
+  const fieldsMap = new Map(fields.map(field => [field.name, field])) as Map<string, PrismaDMMF.Field>;
+  extendFields.forEach((extendField) => {
+    const existingField = fieldsMap.get(extendField.name);
+
+    if (existingField) {
+      // Обновляем существующее поле
+      fieldsMap.set(extendField.name, {
+        ...existingField,
+        ...extendField, // Переопределяем свойства
+      });
+    } else {
+      // Добавляем новое поле
+      fieldsMap.set(extendField.name, {
+        ...extendField,
+        isRequired: extendField.isRequired ?? false,
+        isExtra: extendField.isExtra ?? false,
+        isList: extendField.isList ?? false,
+        relationName: extendField.relationName || null,
+        documentation: '',
+      } as PrismaDMMF.Field);
+    }
+  });
+
+  /*const extendFieldsTransformed = extendFields.map((field) => ({
     ...field,
     isRequired: field.isRequired ?? false,
     isExtra: field.isExtra ?? false,
@@ -113,7 +143,9 @@ function generateDTO(
     documentation: '',
   }));
 
-  fields.push(...extendFieldsTransformed as unknown as PrismaDMMF.Field[]);
+  fields.push(...extendFieldsTransformed as unknown as PrismaDMMF.Field[]);*/
+
+  fields = Array.from(fieldsMap.values());
 
   // Собираем импорты валидаторов
   const validatorImports = [
@@ -136,7 +168,8 @@ function generateDTO(
 
   const relationImports = new Map<string, string>();
 
-  const referenceFields = [...model.fields.filter((field) => field.relationName), ...extendFieldsTransformed.filter(e => e.relationName)];
+  //const referenceFields = [...model.fields.filter((field) => field.relationName), ...extendFieldsTransformed.filter(e => e.relationName)];
+  const referenceFields = fields.filter((field) => field.relationName);
 
 
   // Отвечает за импорт

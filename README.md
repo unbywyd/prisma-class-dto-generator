@@ -68,6 +68,7 @@ Create a **generator-config.json** file next to your Prisma schema file (e.g. sc
 
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
+  excludeModels?: string[];
   excludeModelFields?: {
     [modelName: string]: string[]
   };
@@ -92,7 +93,7 @@ export type PrismaClassDTOGeneratorConfig = {
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
   list?: { // Generate list DTOs
-    includeModels: true | {
+    includeModels: {
       [modelName: string]: PrismaClassDTOGeneratorListModelConfig
     }
   },
@@ -102,7 +103,7 @@ export type PrismaClassDTOGeneratorConfig = {
         values: Array<string>
       }
     },
-    models: true | {
+    models: {
       [modelName: string]: {
         type: "input" | "output",
         fields: Array<PrismaClassDTOGeneratorField>
@@ -207,6 +208,36 @@ model App {
   /// @orderable
 }
 ```
+
+### Details
+
+#### Note on extendModels
+The extendModels option in the configuration allows you to either add new fields or update existing fields in the DTOs:
+
+Adding new fields: If a field specified in extendModels does not exist in the original model, it will be added as a new field.
+Updating existing fields: If a field with the same name already exists, its properties (e.g., isRequired) will be overridden with the values from extendModels.
+Example
+Given the following configuration:
+
+```json
+{
+  "input": {
+    "extendModels": {
+      "Item": {
+        "fields": [
+          {
+            "name": "title",
+            "isRequired": false
+          }
+        ]
+      }
+    }
+  }
+}
+
+```
+* If the **Item** model already has a title field, its **isRequired** property will be updated to **false**.
+* If the **title** field does not exist in the **Item** model, it will be added as a new optional field.
 
 ### Supported Comments:
 * @**filterable**: Enables filtering for this field in list queries.
