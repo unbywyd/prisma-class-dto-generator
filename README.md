@@ -100,6 +100,9 @@ export type PrismaClassDTOGeneratorConfig = {
   };
   extra?: {
     // Additional models and enums
+    options: {
+      skipExtraPrefix?: boolean;
+    };
     enums?: {
       [enumName: string]: {
         values: Array<string>;
