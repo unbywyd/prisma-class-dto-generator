@@ -121,6 +121,9 @@ function generateDTO(
     return !isFieldExclude({ name: field.name } as PrismaDMMF.Field);
   });
 
+
+  const mergeInputFields = [];
+
   for (const field of includeOnlyFields) {
     if ('string' != typeof field) {
       if (!fields.find(f => f.name === field.name)) {
@@ -130,6 +133,8 @@ function generateDTO(
         } else {
           extendFields[extendFields.indexOf(inExtend)] = Object.assign(field, inExtend);
         }
+      } else {
+        mergeInputFields.push(field);
       }
     }
   }
@@ -157,6 +162,20 @@ function generateDTO(
       } as PrismaDMMF.Field);
     }
   });
+
+  if (mergeInputFields?.length > 0) {
+    mergeInputFields.forEach((extendField) => {
+      const existingField = fieldsMap.get(extendField.name);
+
+      if (existingField) {
+        // Обновляем существующее поле
+        fieldsMap.set(extendField.name, {
+          ...existingField,
+          ...extendField, // Переопределяем свойства
+        });
+      }
+    });
+  }
 
   /*const extendFieldsTransformed = extendFields.map((field) => ({
     ...field,
