@@ -3,13 +3,14 @@ import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 import path from 'path';
 import { generateEnumImports, generateHelpersImports, getDecoratorsByFieldType, getFieldDirectives, getTSDataTypeFromFieldType, shouldImportHelpers } from "./helpers";
 import { PrismaClassDTOGeneratorField } from "./generate-class";
-import { PrismaClassDTOGeneratorListModelConfig } from "./prisma-generator";
+import { PrismaClassDTOGeneratorConfig, PrismaClassDTOGeneratorListModelConfig } from "./prisma-generator";
 
 export function generateListDTO(
     config: PrismaClassDTOGeneratorListModelConfig,
     project: Project,
     dirPath: string,
-    model: Partial<PrismaDMMF.Model>
+    model: Partial<PrismaDMMF.Model>,
+    mainConfig: PrismaClassDTOGeneratorConfig,
 ) {
     const modelName = model.name;
     const itemsModelName = config?.outputModelName ? config?.outputModelName : `Output${modelName}`;
@@ -82,12 +83,12 @@ export function generateListDTO(
     }) || [];
 
     validFields.forEach((field) => {
-        const decorators = getDecoratorsByFieldType(field).filter((decorator) => {
+        const decorators = getDecoratorsByFieldType(field, mainConfig).filter((decorator) => {
             return decorator.name !== 'IsOptional' && decorator.name !== 'IsDefined' && decorator.name !== 'Expose';
         });
         classDeclaration.addProperty({
             name: field.name,
-            type: getTSDataTypeFromFieldType(field),
+            type: getTSDataTypeFromFieldType(field, mainConfig),
             hasQuestionToken: true,
             decorators: [
                 { name: 'IsOptional', arguments: [] },
@@ -104,16 +105,16 @@ export function generateListDTO(
         generateHelpersImports(sourceFile, ['getEnumValues']);
     }
 
-    generateEnumImports(sourceFile, customFields);
+    generateEnumImports(sourceFile, customFields, mainConfig);
 
 
     customFields.forEach((field) => {
-        const decorators = getDecoratorsByFieldType(field as PrismaDMMF.Field).filter((decorator) => {
+        const decorators = getDecoratorsByFieldType(field as PrismaDMMF.Field, mainConfig).filter((decorator) => {
             return decorator.name !== 'IsOptional' && decorator.name !== 'IsDefined' && decorator.name !== 'Expose';
         });
         classDeclaration.addProperty({
             name: field.name,
-            type: getTSDataTypeFromFieldType(field as PrismaDMMF.Field),
+            type: getTSDataTypeFromFieldType(field as PrismaDMMF.Field, mainConfig),
             hasQuestionToken: true,
             decorators: [
                 { name: 'IsOptional', arguments: [] },

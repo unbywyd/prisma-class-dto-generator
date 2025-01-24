@@ -76,11 +76,15 @@ export const generateModelsIndexFile = (
     }
   );
 
+  const extraOptions = config.extra?.options || {};
+
   // Генерация экспортов для "расширенных" моделей
   const extraExports = extraModelNames.map<OptionalKind<ExportDeclarationStructure>>(
     (extraModelName) => ({
-      moduleSpecifier: `./Extra${extraModelName}DTO.model`,
-      namedExports: [`Extra${extraModelName}DTO`],
+      moduleSpecifier: extraOptions.skipExtraPrefix ? `./${extraModelName}DTO.model` : `./Extra${extraModelName}DTO.model`,
+      namedExports: [
+        extraOptions.skipExtraPrefix ? `${extraModelName}DTO` : `Extra${extraModelName}DTO`
+      ],
     }),
   );
 
@@ -99,7 +103,7 @@ export const shouldImportHelpers = (fields: PrismaDMMF.Field[]) => {
   return fields.some((field) => ['enum'].includes(field.kind));
 };
 
-export const getTSDataTypeFromFieldType = (field: PrismaDMMF.Field) => {
+export const getTSDataTypeFromFieldType = (field: PrismaDMMF.Field, config: PrismaClassDTOGeneratorConfig) => {
   let type = field.type;
   switch (field.type) {
     case 'Int':
@@ -132,13 +136,14 @@ export const getTSDataTypeFromFieldType = (field: PrismaDMMF.Field) => {
   } else if (field.kind === 'object') {
     type = `${type}`;
   }
+  const extraOptions = config.extra?.options || {};
   if (field.kind === 'enum' && (field as any).isExtra) {
-    type = `Extra${type}`;
+    type = extraOptions.skipExtraPrefix ? type : `Extra${type}`;
   }
   return type;
 };
 
-export const getDecoratorsByFieldType = (field: PrismaDMMF.Field) => {
+export const getDecoratorsByFieldType = (field: PrismaDMMF.Field, config: PrismaClassDTOGeneratorConfig) => {
   const decorators: OptionalKind<DecoratorStructure>[] = [];
 
   // Добавление валидаторов на основе типа
@@ -191,8 +196,14 @@ export const getDecoratorsByFieldType = (field: PrismaDMMF.Field) => {
   }
 
   if (field.kind === 'enum') {
-    const type = (field as any).isExtra ? `Extra${field.type}` : field.type;
-    decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${type})`] });
+    const extraOptions = config.extra?.options || {};
+
+    if (extraOptions?.skipExtraPrefix) {
+      decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${field.type})`] });
+    } else {
+      const type = (field as any).isExtra ? `Extra${field.type}` : field.type;
+      decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${type})`] });
+    }
   }
 
   decorators.push({ name: 'Expose', arguments: [] });
@@ -268,15 +279,27 @@ export const generateHelpersImports = (
 export const generateEnumImports = (
   sourceFile: SourceFile,
   fields: PrismaDMMF.Field[],
+  config: PrismaClassDTOGeneratorConfig,
 ) => {
   const enumsToImport = fields
     .filter((field) => field.kind === 'enum' && !(field as any)?.isExtra)
     .map((field) => field.type);
 
+  const extraOptions = config.extra?.options || {};
 
-  const extraEnumsToImport = fields.filter((field) => field.kind === 'enum' && (field as any)?.isExtra).map((field) => `Extra${field.type}`);
+  const allEnumsToImport = [...enumsToImport];
 
-  const allEnumsToImport = [...enumsToImport, ...extraEnumsToImport];
+  if (!extraOptions.skipExtraPrefix) {
+    const extraEnumsToImport = fields.filter((field) => field.kind === 'enum' && (field as any)?.isExtra).map((field) => `Extra${field.type}`);
+    allEnumsToImport.push(...extraEnumsToImport);
+  } else {
+    const extraEnumsToImport = fields.filter((field) => field.kind === 'enum' && (field as any)?.isExtra).map((field) => field.type);
+    for (const extraEnum of extraEnumsToImport) {
+      if (!allEnumsToImport.includes(extraEnum)) {
+        allEnumsToImport.push(extraEnum);
+      }
+    }
+  }
 
   if (allEnumsToImport.length > 0) {
     generateUniqueImports(sourceFile, allEnumsToImport, '../enums');

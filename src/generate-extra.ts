@@ -32,7 +32,8 @@ export function generateExtraModel(
     modelName: string,
     modelConfig: { fields: Array<ExtraField>, type: "input" | "output" }
 ) {
-    const filePath = path.resolve(outputDir, 'models', `Extra${modelName}DTO.model.ts`);
+    const extraOptions = config.extra?.options || {};
+    const filePath = path.resolve(outputDir, 'models', extraOptions.skipExtraPrefix ? `${modelName}DTO.model.ts` : `Extra${modelName}DTO.model.ts`);
     const sourceFile = project.createSourceFile(filePath, undefined, {
         overwrite: true,
     });
@@ -78,11 +79,13 @@ export function generateExtraModel(
 
     // Импорты для связей
     const relationImports = new Map<string, string>();
+
     fields.forEach((field) => {
         if (field.relationName) {
             // Генерируем имя связанного DTO
             // Для extra моделей используется префикс "Extra"
-            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
+            const extraName = extraOptions?.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
+            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
             const relativePath = `./${relatedDTOName}.model`;
 
             if (!relationImports.has(relatedDTOName)) {
@@ -104,7 +107,7 @@ export function generateExtraModel(
     }
 
     // Генерация импортов еnum (если есть поля enum)
-    generateEnumImports(sourceFile, fields as PrismaDMMF.Field[]);
+    generateEnumImports(sourceFile, fields as PrismaDMMF.Field[], config);
 
     const hasRelations = fields.some((field) => field.relationName);
     if (hasRelations) {
@@ -116,12 +119,14 @@ export function generateExtraModel(
 
     // Создаём свойства DTO
     const properties = fields.map<OptionalKind<PropertyDeclarationStructure>>((field) => {
-        const decorators = getDecoratorsByFieldType(field as any);
+        const decorators = getDecoratorsByFieldType(field as any, config);
 
-        let type = getTSDataTypeFromFieldType(field as any);
+        let type = getTSDataTypeFromFieldType(field as any, config);
         if (field.relationName) {
             const isArray = field.isList;
-            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `Extra${field.type}DTO` : `${oiType}${field.type}DTO`;
+            const extraName = extraOptions?.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
+            const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
+
             type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
             const relativePath = `./${relatedDTOName}.model`;
             decorators.push({
@@ -143,8 +148,9 @@ export function generateExtraModel(
     });
 
     // Создаём класс DTO
+    const extraName = extraOptions?.skipExtraPrefix ? `${modelName}DTO` : `Extra${modelName}DTO`;
     const classDeclaration = sourceFile.addClass({
-        name: `Extra${modelName}DTO`,
+        name: extraName,
         isExported: true,
         properties: properties,
     });
@@ -153,7 +159,7 @@ export function generateExtraModel(
         name: 'className',
         type: 'string',
         isStatic: true,
-        initializer: `'Extra${modelName}DTO'`,
+        initializer: `'${extraName}'`,
     });
 
     // Сохраняем файл

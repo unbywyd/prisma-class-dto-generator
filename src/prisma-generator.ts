@@ -42,6 +42,9 @@ export type PrismaClassDTOGeneratorConfig = {
     }
   },
   extra?: {
+    options: {
+      skipExtraPrefix?: boolean
+    },
     enums?: {
       [enumName: string]: {
         values: Array<string>
@@ -113,10 +116,13 @@ export async function generate(options: GeneratorOptions) {
     generateEnum(project, outputDir, enumItem);
   });
 
+  const extraOptions = config.extra?.options || {};
+
   if (config.extra?.enums) {
     const keys = Object.keys(config.extra.enums);
     for (const key of keys) {
-      enumNames.add('Extra' + key);
+      const name = extraOptions?.skipExtraPrefix ? key : 'Extra' + key;
+      enumNames.add(name);
     }
   }
 
@@ -134,7 +140,7 @@ export async function generate(options: GeneratorOptions) {
 
   const prepareModels = prismaClientDmmf.datamodel.models.filter((model) => !excludeModels.includes(model.name));
   for (const model of prepareModels) {
-    const _listPrepared = await generateClass(config, project, outputDir, model);
+    const _listPrepared = await generateClass(config, project, outputDir, model, config);
     if (_listPrepared?.length) {
       _listPrepared.forEach((name) => listPrepared.add(name));
     }
@@ -146,7 +152,7 @@ export async function generate(options: GeneratorOptions) {
     if (listPrepared.has(modelName)) {
       continue;
     }
-    generateListDTO(listConfig, project, dirPath, { name: modelName });
+    generateListDTO(listConfig, project, dirPath, { name: modelName }, config);
   }
 
   const helpersIndexSourceFile = project.createSourceFile(
