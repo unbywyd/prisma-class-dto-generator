@@ -94,10 +94,14 @@ function generateDTO(
   const excludeModels = [...mainConfig.excludeModels || [], ...config.excludeModels || []];
   const includeOnlyFields = config.includeModelFields?.[model.name] || [];
 
+  const includeOnlyFieldNames = includeOnlyFields.map((field) => 'string' === typeof field ? field : field.name);
 
   const isFieldExclude = (field: PrismaDMMF.Field) => {
-    if (includeOnlyFields.length > 0) {
-      return !includeOnlyFields.includes(field.name);
+    if (includeOnlyFieldNames.length > 0) {
+      const isInclude = includeOnlyFieldNames.includes(field.name);
+      if (!isInclude) {
+        return true;
+      }
     }
     if (field.relationName && excludeModels.includes(field.type)) {
       return true;
@@ -116,6 +120,20 @@ function generateDTO(
   const extendFields = (config.extendModels?.[model.name]?.fields || []).filter((field) => {
     return !isFieldExclude({ name: field.name } as PrismaDMMF.Field);
   });
+
+  for (const field of includeOnlyFields) {
+    if ('string' != typeof field) {
+      if (!fields.find(f => f.name === field.name)) {
+        const inExtend = extendFields.find(f => f.name === field.name);
+        if (!inExtend) {
+          extendFields.push(field);
+        } else {
+          extendFields[extendFields.indexOf(inExtend)] = Object.assign(field, inExtend);
+        }
+      }
+    }
+  }
+
 
   const fieldsMap = new Map(fields.map(field => [field.name, field])) as Map<string, PrismaDMMF.Field>;
   extendFields.forEach((extendField) => {

@@ -17,7 +17,7 @@ export type PrismaClassDTOGeneratorModelConfig = {
     [modelName: string]: string[]
   };
   includeModelFields?: {
-    [modelName: string]: string[]
+    [modelName: string]: Array<string | PrismaClassDTOGeneratorField>
   };
   includeRelations?: boolean;
   extendModels?: {
@@ -72,6 +72,12 @@ async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGenerato
   try {
     const fileContent = await fs.readFile(absolutePath, 'utf-8'); // Читаем содержимое файла
     const fileConfig = JSON.parse(fileContent);
+    if (fileConfig.input?.includeRelations === undefined) {
+      fileConfig.input.includeRelations = false;
+    }
+    if (fileConfig.output?.includeRelations === undefined) {
+      fileConfig.output.includeRelations = true;
+    }
     return fileConfig;
   } catch (e) {
     return defaultValues;
