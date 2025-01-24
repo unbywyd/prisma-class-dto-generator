@@ -8,6 +8,7 @@ import { generateHelpersIndexFile } from './generate-helpers';
 import { generateDecoratorsFile, generateEnumsIndexFile, generateModelsIndexFile } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
+import { generateListDTO } from './generate-list';
 
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
@@ -27,16 +28,16 @@ export type PrismaClassDTOGeneratorModelConfig = {
 };
 export type PrismaClassDTOGeneratorListModelConfig = {
   pagination?: true,
-  itemsModePrefix?: string,
+  outputModelName?: string,
   filters?: Array<string | PrismaClassDTOGeneratorField>,
-  orderable?: boolean
+  orderable?: boolean | Array<string>,
 };
 export type PrismaClassDTOGeneratorConfig = {
   input: PrismaClassDTOGeneratorModelConfig;
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
   list?: {
-    includeModels: true | {
+    models: true | {
       [modelName: string]: PrismaClassDTOGeneratorListModelConfig
     }
   },
@@ -123,11 +124,24 @@ export async function generate(options: GeneratorOptions) {
   }
 
   const excludeModels = config.excludeModels || [];
+  const listPrepared = new Set<string>();
 
-  prismaClientDmmf.datamodel.models.filter((model) => !excludeModels.includes(model.name)).
-    forEach((model) =>
-      generateClass(config, project, outputDir, model),
-    );
+  const prepareModels = prismaClientDmmf.datamodel.models.filter((model) => !excludeModels.includes(model.name));
+  for (const model of prepareModels) {
+    const _listPrepared = await generateClass(config, project, outputDir, model);
+    if (_listPrepared?.length) {
+      _listPrepared.forEach((name) => listPrepared.add(name));
+    }
+  }
+
+  const dirPath = path.resolve(outputDir, 'models');
+  const list = config.list?.models || {};
+  for (const [modelName, listConfig] of Object.entries(list)) {
+    if (listPrepared.has(modelName)) {
+      continue;
+    }
+    generateListDTO(listConfig, project, dirPath, { name: modelName });
+  }
 
   const helpersIndexSourceFile = project.createSourceFile(
     path.resolve(outputDir, 'helpers', 'index.ts'),

@@ -35,6 +35,7 @@ A generator for [Prisma ORM](https://www.prisma.io/) that creates fully-typed Da
   })
   ```
 - **Lazy Imports for Deep Type Integration**:
+
 ```typescript
 @Entity(() => import('./ExtraAppDTO.model').then(m => m.ExtraAppDTO), true)
 items: ExtraAppDTO[];
@@ -65,51 +66,52 @@ Create a **generator-config.json** file next to your Prisma schema file (e.g. sc
 ### TYPE: GeneratorConfig
 
 ```typescript
-
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
   excludeModels?: string[];
   excludeModelFields?: {
-    [modelName: string]: string[]
+    [modelName: string]: string[];
   };
   includeModelFields?: {
-    [modelName: string]: string[]
+    [modelName: string]: string[];
   };
   includeRelations?: boolean;
   extendModels?: {
     [modelName: string]: {
-      fields: Array<PrismaClassDTOGeneratorField>
-    }
-  }
+      fields: Array<PrismaClassDTOGeneratorField>;
+    };
+  };
 };
 export type PrismaClassDTOGeneratorListModelConfig = {
-  pagination?: true,
-  itemsModePrefix?: string,
-  filters?: Array<string | PrismaClassDTOGeneratorField>,
-  orderable?: boolean
+  pagination?: true;
+  outputModelName?: string; // Type of items in the array by default is the current model name
+  filters?: Array<string | PrismaClassDTOGeneratorField>;
+  orderable?: boolean | Array<string>; // Array = Specific fields (enum)
 };
 export type PrismaClassDTOGeneratorConfig = {
   input: PrismaClassDTOGeneratorModelConfig;
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
-  list?: { // Generate list DTOs
-    includeModels: {
-      [modelName: string]: PrismaClassDTOGeneratorListModelConfig
-    }
-  },
-  extra?: { // Additional models and enums
+  list?: {
+    // Generate list DTOs
+    models: {
+      [modelName: string]: PrismaClassDTOGeneratorListModelConfig;
+    };
+  };
+  extra?: {
+    // Additional models and enums
     enums?: {
       [enumName: string]: {
-        values: Array<string>
-      }
-    },
+        values: Array<string>;
+      };
+    };
     models: {
       [modelName: string]: {
-        type: "input" | "output",
-        fields: Array<PrismaClassDTOGeneratorField>
-      }
-    }
-  }
+        type: 'input' | 'output';
+        fields: Array<PrismaClassDTOGeneratorField>;
+      };
+    };
+  };
 };
 ```
 
@@ -147,11 +149,10 @@ Example **generator-config.json**:
     }
   },
   "list": {
-    "includeModels": {
+    "models": {
       "App": {
         "pagination": true,
         "orderable": true,
-        "itemsModePrefix": "Extra",
         "filters": [
           {
             "name": "test_best",
@@ -212,6 +213,7 @@ model App {
 ### Details
 
 #### Note on extendModels
+
 The extendModels option in the configuration allows you to either add new fields or update existing fields in the DTOs:
 
 Adding new fields: If a field specified in extendModels does not exist in the original model, it will be added as a new field.
@@ -234,25 +236,25 @@ Given the following configuration:
     }
   }
 }
-
 ```
-* If the **Item** model already has a title field, its **isRequired** property will be updated to **false**.
-* If the **title** field does not exist in the **Item** model, it will be added as a new optional field.
+
+- If the **Item** model already has a title field, its **isRequired** property will be updated to **false**.
+- If the **title** field does not exist in the **Item** model, it will be added as a new optional field.
 
 ### Supported Comments:
-* @**filterable**: Enables filtering for this field in list queries.
-* @**exclude {type}** output|input: Exclude a field from either the output or input DTO.
-* @**listable**: Makes the entire model listable.
-* @**orderable**: Enables sorting capabilities.
-* @**pagination**: Enables pagination capabilities.
 
+- @**filterable**: Enables filtering for this field in list queries.
+- @**exclude {type}** output|input: Exclude a field from either the output or input DTO.
+- @**listable**: Makes the entire model listable.
+- @**orderable**: Enables sorting capabilities.
+- @**pagination**: Enables pagination capabilities.
 
 ### Helper ToDTO
 
 Utility functions like toDTO help you transform plain data to DTO instances with class-transformer:
 
 ```typescript
-import { plainToClass } from "class-transformer";
+import { plainToClass } from 'class-transformer';
 
 export function toDTO<T>(DtoClass: new (...args: any[]) => T, data: any): T {
   return plainToClass(DtoClass, data, {
@@ -262,4 +264,5 @@ export function toDTO<T>(DtoClass: new (...args: any[]) => T, data: any): T {
 ```
 
 ### Author
+
 [unbywyd](https://unbywyd.com)

@@ -9,16 +9,22 @@ export function generateListDTO(
     config: PrismaClassDTOGeneratorListModelConfig,
     project: Project,
     dirPath: string,
-    model: PrismaDMMF.Model,
+    model: Partial<PrismaDMMF.Model>
 ) {
-    const filePath = path.resolve(dirPath, `List${model.name}DTO.model.ts`);
+    const modelName = model.name;
+    const itemsModelName = config?.outputModelName ? config?.outputModelName : `Output${modelName}`;
+
+
+    const filePath = path.resolve(dirPath, `List${modelName}DTO.model.ts`);
     const sourceFile = project.createSourceFile(filePath, undefined, {
         overwrite: true,
     });
 
-    const directives = getFieldDirectives(model.documentation);
-    const isOrderable = config?.orderable || directives.orderable;
+    const directives = getFieldDirectives(model?.documentation);
+    const isOrderable = (config?.orderable === true || Array.isArray(config?.orderable) && config?.orderable?.length) || directives.orderable;
     const hasPagination = config?.pagination || directives.pagination;
+
+    const orderableFields = Array.isArray(config?.orderable) ? config?.orderable : [];
 
     sourceFile.addImportDeclaration({
         moduleSpecifier: 'class-transformer',
@@ -36,16 +42,16 @@ export function generateListDTO(
         namedImports: ['Entity'],
     });
 
-    const itemsModePrefix = config?.itemsModePrefix || 'Output';
+
 
     sourceFile.addImportDeclaration({
-        moduleSpecifier: `./${itemsModePrefix}${model.name}DTO.model`,
-        namedImports: [`${itemsModePrefix}${model.name}DTO`],
+        moduleSpecifier: `./${itemsModelName}DTO.model`,
+        namedImports: [`${itemsModelName}DTO`],
     });
 
     // Создаём класс List<Entity>DTO
     const classDeclaration = sourceFile.addClass({
-        name: `QueryList${model.name}DTO`,
+        name: `QueryList${modelName}DTO`,
         isExported: true,
         properties: !hasPagination ? [] : [
             {
@@ -70,10 +76,10 @@ export function generateListDTO(
     });
 
     const filters = config?.filters || [];
-    const validFields = model.fields.filter((field) => {
+    const validFields = model.fields?.filter((field) => {
         const directives = getFieldDirectives(field.documentation);
         return directives.filterable || filters.find((filter) => typeof filter === 'string' ? filter === field.name : filter.name === field.name);
-    });
+    }) || [];
 
     validFields.forEach((field) => {
         const decorators = getDecoratorsByFieldType(field).filter((decorator) => {
@@ -91,7 +97,7 @@ export function generateListDTO(
         });
     });
 
-    const modelFieldsKeys = model.fields.map((field) => field.name);
+    const modelFieldsKeys = model.fields?.map((field) => field.name) || [];
     const customFields = filters.filter((filter) => typeof filter !== 'string' && !modelFieldsKeys.includes(filter.name)) as Array<PrismaClassDTOGeneratorField>;
 
     if (shouldImportHelpers(customFields)) {
@@ -118,21 +124,39 @@ export function generateListDTO(
     });
 
     if (isOrderable) {
+
         sourceFile.addImportDeclaration({
             moduleSpecifier: '@prisma/client',
             namedImports: ['Prisma'],
         })
 
-        classDeclaration.addProperty({
-            name: 'orderBy',
-            type: "String",            
-            hasQuestionToken: true,
-            decorators: [
-                { name: 'IsOptional', arguments: [] }, // Поле необязательное
-                { name: 'IsString', arguments: [] }, // Поле должно быть строкой
-                { name: 'Expose', arguments: [] }, // Экспортируем для API
-            ],
-        });
+        // orderableFields
+
+        if (orderableFields?.length) {
+            classDeclaration.addProperty({
+                name: 'orderBy',
+                type: "String",
+                hasQuestionToken: true,
+                decorators: [
+                    { name: 'IsOptional', arguments: [] }, // Поле необязательное
+                    { name: 'IsIn', arguments: [`[${orderableFields.map(el => `"${el}"`)?.join(',')}]`] }, // Поле должно быть из списка
+                    { name: 'Expose', arguments: [] }, // Экспортируем для API
+                ],
+            });
+
+        } else {
+            classDeclaration.addProperty({
+                name: 'orderBy',
+                type: "String",
+                hasQuestionToken: true,
+                decorators: [
+                    { name: 'IsOptional', arguments: [] }, // Поле необязательное
+                    { name: 'IsString', arguments: [] }, // Поле должно быть строкой
+                    { name: 'Expose', arguments: [] }, // Экспортируем для API
+                ],
+            });
+        }
+
 
         classDeclaration.addProperty({
             name: 'orderDirection',
@@ -151,11 +175,11 @@ export function generateListDTO(
         name: 'className',
         type: 'string',
         isStatic: true,
-        initializer: `'QueryList${model.name}DTO'`,
+        initializer: `'QueryList${modelName}DTO'`,
     });
 
     const outputClassDeclaration = sourceFile.addClass({
-        name: `OutputList${model.name}DTO`,
+        name: `OutputList${modelName}DTO`,
         isExported: true,
         properties: [
             ...(hasPagination ? [
@@ -189,14 +213,14 @@ export function generateListDTO(
             },
             {
                 name: 'items',
-                type: `${itemsModePrefix}${model.name}DTO[]`,
+                type: `${itemsModelName}DTO[]`,
                 hasQuestionToken: false,
                 decorators: [
                     { name: 'Expose', arguments: [] },
                     {
                         name: 'Entity',
                         arguments: [
-                            `() => import('./${itemsModePrefix}${model.name}DTO.model').then(m => m.${itemsModePrefix}${model.name}DTO)`,
+                            `() => import('./${itemsModelName}DTO.model').then(m => m.${itemsModelName}DTO)`,
                             'true',
                         ],
                     },
@@ -211,7 +235,7 @@ export function generateListDTO(
         name: 'className',
         type: 'string',
         isStatic: true,
-        initializer: `'OutputList${model.name}DTO'`,
+        initializer: `'OutputList${modelName}DTO'`,
     });
 }
 

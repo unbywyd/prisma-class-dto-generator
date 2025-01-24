@@ -44,7 +44,7 @@ export default async function generateClass(
     generateDTO(config.output, project, dirPath, model, 'Output', config);
   }
 
-  const listModels = (config.list?.includeModels || {}) as Record<string, { pagination?: true; filters?: Array<string> }>;
+
 
   const directives = getFieldDirectives(model.documentation);
 
@@ -60,13 +60,19 @@ export default async function generateClass(
     }
   }
 
+  const listPrepared = [];
 
-
-  const shouldGenerateList = (model.name in listModels && listModels[model.name]) || directives.listable;
-  if (shouldGenerateList) {
-    const configList = listModels[model.name] || {};
+  const listModels = (config.list?.models || {}) as Record<string, { pagination?: true; filters?: Array<string> }>;
+  if (directives.listable) {
+    const configList = listModels[model.name] || {
+      pagination: true,
+      filters: [],
+    };
     generateListDTO(configList, project, dirPath, model);
+    listPrepared.push(model.name);
   }
+  return listPrepared;
+
 }
 
 function generateDTO(
