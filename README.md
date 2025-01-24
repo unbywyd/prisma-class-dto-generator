@@ -73,7 +73,7 @@ export type PrismaClassDTOGeneratorModelConfig = {
     [modelName: string]: string[];
   };
   includeModelFields?: {
-    [modelName: string]: string[];
+    [modelName: string]: Array<string | PrismaClassDTOGeneratorField>
   };
   includeRelations?: boolean;
   extendModels?: {
