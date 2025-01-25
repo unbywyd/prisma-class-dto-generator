@@ -4,11 +4,11 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import generateClass, { PrismaClassDTOGeneratorField } from './generate-class';
 import generateEnum from './generate-enum';
-import { generateHelpersIndexFile } from './generate-helpers';
-import { generateDecoratorsFile, generateEnumsIndexFile, generateModelsIndexFile } from './helpers';
+import { generateEnumsIndexFile, generateModelsIndexFile } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
 import { generateListDTO } from './generate-list';
+import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
@@ -16,6 +16,7 @@ export type PrismaClassDTOGeneratorModelConfig = {
   excludeModelFields?: {
     [modelName: string]: string[]
   };
+  makeFieldsOptional?: boolean;
   includeModelFields?: {
     [modelName: string]: Array<string | PrismaClassDTOGeneratorField>
   };
@@ -58,6 +59,30 @@ export type PrismaClassDTOGeneratorConfig = {
     }
   }
 };
+
+function buildForeignKeyMap(dmmf: PrismaDMMF.Document): Map<string, string> {
+  const foreignKeyMap = new Map<string, string>();
+
+  for (const model of dmmf.datamodel.models) {
+    for (const field of model.fields) {
+      // Если поле - это объект (kind === "object") и в нём заданы relationFromFields,
+      // значит, это реляционное поле, указывающее, откуда берётся FK (например, [ 'updatedById' ])
+      if (field.kind === 'object' && field.relationFromFields?.length) {
+        const relatedModelName = field.type; // Например, "Admin"
+
+        // relationFromFields может содержать несколько ключей (если составной ключ),
+        // обычно бывает 1, но на всякий случай обходим все
+        field.relationFromFields.forEach(fkFieldName => {
+          // Сохраняем в Map, что в модели M поле fkFieldName -> указывает на relatedModelName
+          foreignKeyMap.set(`${model.name}.${fkFieldName}`, relatedModelName);
+        });
+      }
+    }
+  }
+
+  return foreignKeyMap;
+}
+
 
 async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGeneratorConfig> {
 
@@ -138,9 +163,11 @@ export async function generate(options: GeneratorOptions) {
   const excludeModels = config.excludeModels || [];
   const listPrepared = new Set<string>();
 
+  const foreignKeyMap = buildForeignKeyMap(prismaClientDmmf);
+
   const prepareModels = prismaClientDmmf.datamodel.models.filter((model) => !excludeModels.includes(model.name));
   for (const model of prepareModels) {
-    const _listPrepared = await generateClass(config, project, outputDir, model, config);
+    const _listPrepared = await generateClass(config, project, outputDir, model, config, foreignKeyMap);
     if (_listPrepared?.length) {
       _listPrepared.forEach((name) => listPrepared.add(name));
     }
@@ -154,15 +181,6 @@ export async function generate(options: GeneratorOptions) {
     }
     generateListDTO(listConfig, project, dirPath, { name: modelName }, config);
   }
-
-  const helpersIndexSourceFile = project.createSourceFile(
-    path.resolve(outputDir, 'helpers', 'index.ts'),
-    undefined,
-    { overwrite: true },
-  );
-  generateHelpersIndexFile(helpersIndexSourceFile);
-
-  await generateDecoratorsFile(outputDir);
 
   generateModelsIndexFile(prismaClientDmmf, project, outputDir, config);
   await project.save();

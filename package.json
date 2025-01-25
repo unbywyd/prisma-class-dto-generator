@@ -1,6 +1,6 @@
 {
   "name": "prisma-class-dto-generator",
-  "version": "6.1.0",
+  "version": "6.3.0",
   "description": "Generate Prisma DTOs with seamless class-validator and class-transformer integration for TypeScript applications.",
   "bin": {
     "prisma-class-dto-generator": "lib/generator.js"
@@ -23,37 +23,36 @@
     "prisma-schema",
     "prisma-generator",
     "prisma-dto",
-    "dto-generator",
+    "DTO",
     "class-validator",
     "class-transformer",
-    "typescript-dto",
+    "typescript",
     "jsonschema",
     "openapi",
-    "type-safe",
     "decorators",
     "routing-controllers"
   ],
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^6.0.1",
-    "@prisma/generator-helper": "^6.0.1",
-    "@prisma/internals": "^6.0.1",
-    "pluralize": "^8.0.0",
-    "prettier": "^2.8.8",
-    "ts-morph": "^22.0.0",
-    "tslib": "^2.6.2"
+    "@prisma/generator-helper": "^6.2.1",
+    "@prisma/internals": "^6.2.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "class-validator-jsonschema": "^5.0.1",
+    "reflect-metadata": "^0.2.2",
+    "routing-controllers": "^0.10.4",
+    "routing-controllers-openapi": "^4.0.0",
+    "routing-controllers-openapi-extra": "^1.0.2",
+    "ts-morph": "^22.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.19.31",
-    "@types/pluralize": "0.0.33",
-    "@types/prettier": "^2.7.3",
-    "prisma": "^6.0.1",
+    "@types/node": "^22.10.10",
+    "tslib": "^2.6.2",
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "class-validator-jsonschema": "^5.0.1",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1"
+    "@prisma/client": "^6.0.0",
+    "prisma": "^6.0.0"
   },
   "repository": {
     "type": "git",

@@ -1,10 +1,8 @@
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 import path from 'path';
-import { promises as fs } from 'fs';
 import {
   DecoratorStructure,
   ExportDeclarationStructure,
-  ImportDeclarationStructure,
   OptionalKind,
   Project,
   SourceFile,
@@ -271,7 +269,7 @@ export const generateHelpersImports = (
   helpersImports: Array<string>,
 ) => {
   sourceFile.addImportDeclaration({
-    moduleSpecifier: '../helpers',
+    moduleSpecifier: 'routing-controllers-openapi-extra',
     namedImports: helpersImports,
   });
 };
@@ -326,82 +324,6 @@ export const generateClassTransformerImport = (
   generateUniqueImports(sourceFile, transformerImports, 'class-transformer');
 };
 
-
-export async function generateDecoratorsFile(outputDir: string) {
-  const content = `
-  import {
-    ValidateNested,
-    ValidationOptions,
-    registerDecorator,
-    ValidationArguments,
-  } from "class-validator";
-  import { Type } from "class-transformer";
-  import { JSONSchema } from "class-validator-jsonschema";
-  
-  export function FixItemJsonSchemaReference(reference: any): PropertyDecorator {
-    return JSONSchema({
-      $ref: \`#/components/schemas/\${reference.name}\`,
-    }) as PropertyDecorator;
-  }
-  
-  export function FixArrayJsonSchemaReference(reference: any): PropertyDecorator {
-    return JSONSchema({
-      type: "array",
-      items: {
-        $ref: \`#/components/schemas/\${reference.name}\`,
-      },
-    }) as PropertyDecorator;
-  }
-
-  export class AsyncTypeRegistry {
-    private static tasks: Promise<any>[] = [];
-
-    public static addTask(task: Promise<any>) {
-        this.tasks.push(task);
-    }
-
-    public static async resolveAll(): Promise<void> {
-        if (this.tasks.length > 0) {
-            await Promise.all(this.tasks);
-        }
-    }
-  }
-    
-  function ApplyJsonSchemaType(type: any, target: Object, propertyKey: string | symbol, isArray: boolean) {
-      if (type) {
-          if (isArray) {
-              FixArrayJsonSchemaReference(type)(target, propertyKey);
-          } else {
-              FixItemJsonSchemaReference(type)(target, propertyKey);
-          }
-      }
-  }      
-
-  export function Entity(typeFunction: () => Promise<Function> | Function, isArray: boolean = false): PropertyDecorator {
-    return function (target: Object, propertyKey: string | symbol) {
-      ValidateNested({ each: isArray })(target, propertyKey);
-
-       const referenceType = typeFunction();
-        Reflect.defineMetadata("design:itemtype", referenceType, target, propertyKey);
-
-        if (referenceType instanceof Promise) {
-            const task = referenceType.then(type => {
-                Type(() => type)(target, propertyKey);
-                ApplyJsonSchemaType(type, target, propertyKey, isArray);
-            }).catch(err => {
-                console.error("Error resolving type for property :" + String(propertyKey), err);
-            });
-            AsyncTypeRegistry.addTask(task);
-        } else {
-            Type(() => referenceType)(target, propertyKey);
-            ApplyJsonSchemaType(referenceType, target, propertyKey, isArray);
-        }
-    };
-  }`;
-
-  const filePath = path.join(outputDir, 'decorators.ts');
-  await fs.writeFile(filePath, content);
-}
 
 export type FieldDirectives = {
   filterable: boolean;

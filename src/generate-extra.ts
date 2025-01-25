@@ -112,8 +112,8 @@ export function generateExtraModel(
     const hasRelations = fields.some((field) => field.relationName);
     if (hasRelations) {
         sourceFile.addImportDeclaration({
-            moduleSpecifier: '../decorators',
-            namedImports: ['Entity'],
+            moduleSpecifier: 'routing-controllers-openapi-extra',
+            namedImports: ['IsEntity'],
         });
     }
 
@@ -130,10 +130,10 @@ export function generateExtraModel(
             type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
             const relativePath = `./${relatedDTOName}.model`;
             decorators.push({
-                name: 'Entity',
+                name: 'IsEntity',
                 arguments: [
                     `() => import('${relativePath}').then(m => m.${relatedDTOName})`,
-                    isArray.toString(),
+                    `{ each: ${isArray} }`,
                 ],
             });
         }

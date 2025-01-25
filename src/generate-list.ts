@@ -39,8 +39,8 @@ export function generateListDTO(
 
 
     sourceFile.addImportDeclaration({
-        moduleSpecifier: '../decorators',
-        namedImports: ['Entity'],
+        moduleSpecifier: 'routing-controllers-openapi-extra',
+        namedImports: ['IsEntity'],
     });
 
 
@@ -219,10 +219,10 @@ export function generateListDTO(
                 decorators: [
                     { name: 'Expose', arguments: [] },
                     {
-                        name: 'Entity',
+                        name: 'IsEntity',
                         arguments: [
                             `() => import('./${itemsModelName}DTO.model').then(m => m.${itemsModelName}DTO)`,
-                            'true',
+                            '{ each: true }',
                         ],
                     },
                 ],

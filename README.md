@@ -34,6 +34,66 @@ A generator for [Prisma ORM](https://www.prisma.io/) that creates fully-typed Da
     responses: getOpenAPIResponse(OutputRequestDTO, true)
   })
   ```
+- **File type support:** Custom decorators `@IsFile` and `@IsFiles` for file uploads, with options for file size, type, and more.
+
+```typescript
+// From https://www.npmjs.com/package/routing-controllers-openapi-extra?activeTab=code
+// Options
+export interface FileFieldOptions {
+  name?: string; // Field name
+  isRequired?: boolean;
+  maxSize?: string;
+  minSize?: string;
+  maxFiles?: number;
+  minFiles?: number;
+  mimeTypes?: RegExp[];
+}
+```
+
+```typescript
+// Schema:
+ "AppConfig": [
+    "value",
+    {
+        "name": "file",
+        "type": "File", // Custom type
+        "isRequired": false,
+        "options": {
+            "maxSize": "10mb"
+        }
+    },
+    {
+        "name": "files",
+        "type": "File", // Custom type
+        "isList": true, // Array of files
+        "options": { // Options for each file (routing-controllers-openapi-extra)
+            "maxSize": "10mb",
+            "maxFiles": 5
+        }
+    }
+]
+
+// DTO:
+import { IsFile, IsFiles } from "routing-controllers-openapi-extra";
+
+export class InputAppConfigDTO {
+    @IsDefined()
+    @Expose()
+    value!: Prisma.JsonValue;
+
+    @IsOptional()
+    @Expose()
+    @IsFile({"maxSize":"10mb"})
+    file?: File;
+
+    @IsOptional()
+    @Expose()
+    @IsFiles({"maxSize":"10mb","maxFiles":5})
+    files?: File[];
+    static className: string = 'InputAppConfigDTO';
+}
+```
+
 - **Lazy Imports for Deep Type Integration**:
 
 ```typescript
@@ -66,14 +126,21 @@ Create a **generator-config.json** file next to your Prisma schema file (e.g. sc
 ### TYPE: GeneratorConfig
 
 ```typescript
+export type PrismaClassDTOGeneratorField = PrismaDMMF.Field & {
+  isExtra?: boolean;
+  isList?: boolean;
+  options?: Record<string, any>;
+};
+
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
   excludeModels?: string[];
+  makeFieldsOptional?: boolean; // [NEW] Make all fields optional
   excludeModelFields?: {
     [modelName: string]: string[];
   };
   includeModelFields?: {
-    [modelName: string]: Array<string | PrismaClassDTOGeneratorField>
+    [modelName: string]: Array<string | PrismaClassDTOGeneratorField>;
   };
   includeRelations?: boolean;
   extendModels?: {

@@ -23,26 +23,30 @@ import { generateExtraEnum } from './generate-extra-enums';
 export type PrismaClassDTOGeneratorField = PrismaDMMF.Field & {
   isExtra?: boolean;
   isList?: boolean;
+  options?: Record<string, any>;
 };
 export default async function generateClass(
   config: PrismaClassDTOGeneratorConfig,
   project: Project,
   outputDir: string,
   model: PrismaDMMF.Model,
-  mainConfig: PrismaClassDTOGeneratorConfig
+  mainConfig: PrismaClassDTOGeneratorConfig,
+  foreignKeyMap: Map<string, string>,
 ) {
   const dirPath = path.resolve(outputDir, 'models');
+
+
 
   // Генерация Input DTO
   const excludeInutModels = config.input.excludeModels || [];
   if (!excludeInutModels.includes(model.name)) {
-    generateDTO(config.input, project, dirPath, model, 'Input', config);
+    generateDTO(config.input, project, dirPath, model, 'Input', config, foreignKeyMap);
   }
 
   const excludeOutputModels = config.output.excludeModels || [];
   if (!excludeOutputModels.includes(model.name)) {
     // Генерация Output DTO
-    generateDTO(config.output, project, dirPath, model, 'Output', config);
+    generateDTO(config.output, project, dirPath, model, 'Output', config, foreignKeyMap);
   }
 
 
@@ -83,6 +87,7 @@ function generateDTO(
   model: PrismaDMMF.Model,
   dtoType: 'Input' | 'Output',
   mainConfig: PrismaClassDTOGeneratorConfig,
+  foreignKeyMap: Map<string, string>,
 ) {
   const filePath = path.resolve(dirPath, `${dtoType}${model.name}DTO.model.ts`);
   const sourceFile = project.createSourceFile(filePath, undefined, {
@@ -178,18 +183,19 @@ function generateDTO(
     });
   }
 
-  /*const extendFieldsTransformed = extendFields.map((field) => ({
-    ...field,
-    isRequired: field.isRequired ?? false,
-    isExtra: field.isExtra ?? false,
-    isList: field.isList ?? false,
-    relationName: field.relationName || null,
-    documentation: '',
-  }));
 
-  fields.push(...extendFieldsTransformed as unknown as PrismaDMMF.Field[]);*/
 
   fields = Array.from(fieldsMap.values());
+
+  const makeFieldsOptional = config.makeFieldsOptional || false;
+  if (makeFieldsOptional) {
+    fields = fields.map((field) => {
+      return {
+        ...field,
+        isRequired: false,
+      };
+    });
+  }
 
   // Собираем импорты валидаторов
   const validatorImports = [
@@ -214,6 +220,7 @@ function generateDTO(
 
   //const referenceFields = [...model.fields.filter((field) => field.relationName), ...extendFieldsTransformed.filter(e => e.relationName)];
   const referenceFields = fields.filter((field) => field.relationName);
+
 
   const extraOptions = mainConfig.extra?.options || {};
 
@@ -246,21 +253,40 @@ function generateDTO(
 
   generateEnumImports(sourceFile, fields as PrismaDMMF.Field[], mainConfig);
 
-  const hasRelations = fields.some((field) => field.relationName);
-  if (hasRelations) {
-    sourceFile.addImportDeclaration({
-      moduleSpecifier: '../decorators',
-      namedImports: ['Entity'],
-    });
-  }
-
+  let hasRelations = fields.some((field) => field.relationName);
+  const hasFileType = fields.some((field) => field.type === 'File');
+  const hasFilesType = fields.some((field) => field.type === 'File' && field.isList);
 
   const allFields = config.includeRelations ? fields : fields.filter((field) => !field.relationName).filter((field) => !isFieldExclude(field as PrismaDMMF.Field));
 
   const properties = allFields.map<OptionalKind<PropertyDeclarationStructure>>((field) => {
     const decorators = getDecoratorsByFieldType(field, mainConfig);
-
     let type = getTSDataTypeFromFieldType(field, mainConfig);
+
+    if (field.type === 'File') {
+      const options = (field as PrismaClassDTOGeneratorField).options || {};
+      const isArray = field.isList;
+
+      if (field?.isRequired) {
+        options.isRequired = true;
+      }
+      if (isArray) {
+        decorators.push({
+          name: 'IsFiles',
+          arguments: [
+            JSON.stringify(options),
+          ],
+        });
+      } else {
+        decorators.push({
+          name: 'IsFile',
+          arguments: [
+            JSON.stringify(options),
+          ],
+        });
+      }
+    }
+
     if (field.relationName) {
       const isArray = field.isList;
       const extraName = extraOptions.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
@@ -269,12 +295,25 @@ function generateDTO(
       const relativePath = `./${relatedDTOName}.model`; // Генерация пути к DTO
       type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
       decorators.push({
-        name: 'Entity',
+        name: 'IsEntity',
         arguments: [
           `() => import('${relativePath}').then(m => m.${relatedDTOName})`,
-          isArray.toString(),
+          `{ each: ${isArray} }`,
         ],
       });
+      decorators.push({
+        name: 'ReferenceModel',
+        arguments: [`"${field.type}"`],
+      });
+    } else {
+      const referenceModelName = foreignKeyMap.get(`${model.name}.${field.name}`);
+      if (referenceModelName) {
+        hasRelations = true;
+        decorators.push({
+          name: 'ReferenceModel',
+          arguments: [`"${referenceModelName}"`],
+        });
+      }
     }
     return {
       name: field.name,
@@ -285,6 +324,26 @@ function generateDTO(
       decorators: decorators,
     };
   });
+
+  if (hasRelations || hasFileType) {
+    const _imports = [];
+    if (hasRelations) {
+      _imports.push('IsEntity');
+      _imports.push('ReferenceModel');
+    }
+    if (hasFileType) {
+      _imports.push('IsFile');
+    }
+    if (hasFilesType) {
+      _imports.push('IsFiles');
+    }
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: 'routing-controllers-openapi-extra',
+      namedImports: _imports
+    });
+  }
+
+
 
   // Создаём класс DTO
   const classDeclaration = sourceFile.addClass({
