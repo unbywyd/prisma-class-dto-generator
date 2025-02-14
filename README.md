@@ -135,6 +135,7 @@ export type PrismaClassDTOGeneratorField = PrismaDMMF.Field & {
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
   excludeModels?: string[];
+  strictMode?: boolean; // [NEW] Strict mode (include only declared models)
   makeFieldsOptional?: boolean; // [NEW] Make all fields optional
   excludeModelFields?: {
     [modelName: string]: string[];
