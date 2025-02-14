@@ -37,8 +37,9 @@ export type PrismaClassDTOGeneratorConfig = {
   input: PrismaClassDTOGeneratorModelConfig;
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
+  strictMode?: boolean;
   list?: {
-    models: true | {
+    models: {
       [modelName: string]: PrismaClassDTOGeneratorListModelConfig
     }
   },
@@ -51,7 +52,7 @@ export type PrismaClassDTOGeneratorConfig = {
         values: Array<string>
       }
     },
-    models: true | {
+    models: {
       [modelName: string]: {
         type: "input" | "output",
         fields: Array<PrismaClassDTOGeneratorField>
@@ -85,6 +86,84 @@ function buildForeignKeyMap(dmmf: PrismaDMMF.Document): Map<string, string> {
 
 
 async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGeneratorConfig> {
+  const res = (config: Partial<PrismaClassDTOGeneratorConfig>): PrismaClassDTOGeneratorConfig => {
+    if (!config.input) {
+      config.input = {
+        excludeFields: [],
+        includeRelations: false,
+        excludeModels: [],
+        excludeModelFields: {},
+        includeModelFields: {},
+        extendModels: {},
+      };
+    }
+    if (!config.output) {
+      config.output = {
+        excludeFields: [],
+        includeRelations: false,
+        excludeModels: [],
+        excludeModelFields: {},
+        includeModelFields: {},
+        extendModels: {},
+      };
+    }
+    if (!config.extra) {
+      config.extra = {
+        options: {},
+        enums: {},
+        models: {}
+      };
+    }
+
+    if (!config.input.excludeFields) {
+      config.input.excludeFields = [];
+    }
+    if (!config.output.excludeFields) {
+      config.output.excludeFields = [];
+    }
+    if (!config.input.excludeModels) {
+      config.input.excludeModels = [];
+    }
+    if (!config.output.excludeModels) {
+      config.output.excludeModels = [];
+    }
+    if (!config.input.excludeModelFields) {
+      config.input.excludeModelFields = {};
+    }
+    if (!config.output.excludeModelFields) {
+      config.output.excludeModelFields = {};
+    }
+    if (!config.input.includeModelFields) {
+      config.input.includeModelFields = {};
+    }
+    if (!config.output.includeModelFields) {
+      config.output.includeModelFields = {};
+    }
+    if (!config.input.extendModels) {
+      config.input.extendModels = {};
+    }
+    if (!config.output.extendModels) {
+      config.output.extendModels = {};
+    }
+    if (!config.extra.enums) {
+      config.extra.enums = {};
+    }
+    if (!config.extra.models) {
+      config.extra.models = {};
+    }
+    if (!config.extra.options) {
+      config.extra.options = {};
+    }
+
+    if (config.input?.includeRelations === undefined) {
+      config.input.includeRelations = false;
+    }
+    if (config.output?.includeRelations === undefined) {
+      config.output.includeRelations = true;
+    }
+
+    return config as PrismaClassDTOGeneratorConfig;
+  }
 
   const defaultValues = {
     input: {
@@ -100,15 +179,9 @@ async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGenerato
   try {
     const fileContent = await fs.readFile(absolutePath, 'utf-8'); // Читаем содержимое файла
     const fileConfig = JSON.parse(fileContent);
-    if (fileConfig.input?.includeRelations === undefined) {
-      fileConfig.input.includeRelations = false;
-    }
-    if (fileConfig.output?.includeRelations === undefined) {
-      fileConfig.output.includeRelations = true;
-    }
-    return fileConfig;
+    return res(fileConfig);
   } catch (e) {
-    return defaultValues;
+    return res(defaultValues);
   }
 
 }
@@ -160,14 +233,82 @@ export async function generate(options: GeneratorOptions) {
     generateEnumsIndexFile(enumsIndexSourceFile, [...enumNames]);
   }
 
-  const excludeModels = config.excludeModels || [];
+  let excludeModels = config.excludeModels || [];
   const listPrepared = new Set<string>();
 
   const foreignKeyMap = buildForeignKeyMap(prismaClientDmmf);
 
-  const prepareModels = prismaClientDmmf.datamodel.models.filter((model) => !excludeModels.includes(model.name));
+  const referenceModels: Array<{ type: 'input' | 'output', name: string }> = [];
+
+  const models = prismaClientDmmf.datamodel.models;
+  const checkFieldsToReference = (fields: Array<string | PrismaClassDTOGeneratorField>, type: 'input' | 'output') => {
+    for (const field of fields) {
+      if (typeof field !== 'string') {
+        if (field?.relationName && field.type) {
+          if (!referenceModels.find((item) => item.name === field.type) && models.find((model) => model.name === field.type)) {
+            referenceModels.push({ type, name: field.type });
+            if(excludeModels.includes(field.type)) {
+              excludeModels = excludeModels.filter((model) => model !== field.type);
+            }
+          }
+        }
+      }
+    }
+  }
+  config.excludeModels = excludeModels;
+
+  if (config.extra?.models && Object.keys(config.extra?.models).length) {
+    for (const key in config.extra.models) {
+      const fields = config.extra.models[key].fields;
+      if (!fields.length) {
+        continue;
+      }
+      checkFieldsToReference(fields, config.extra.models[key].type || 'output');
+    }
+  }
+
+  if (config?.input?.includeModelFields && Object.keys(config.input.includeModelFields).length) {
+    for (const key in config.input.includeModelFields) {
+      const fields = config.input.includeModelFields[key];
+      if (!fields.length) {
+        continue;
+      }
+      checkFieldsToReference(fields, 'input');
+    }
+  }
+  if (config?.input?.extendModels && Object.keys(config.input.extendModels).length) {
+    for (const key in config.input.extendModels) {
+      const fields = config.input.extendModels[key].fields;
+      if (!fields.length) {
+        continue;
+      }
+      checkFieldsToReference(fields, 'input');
+    }
+  }
+
+  if (config?.output?.extendModels && Object.keys(config.output.extendModels).length) {
+    for (const key in config.output.extendModels) {
+      const fields = config.output.extendModels[key].fields;
+      if (!fields.length) {
+        continue;
+      }
+      checkFieldsToReference(fields, 'output');
+    }
+  }
+  if (config?.output?.includeModelFields && Object.keys(config.output.includeModelFields).length) {
+    for (const key in config.output.includeModelFields) {
+      const fields = config.output.includeModelFields[key];
+      if (!fields.length) {
+        continue;
+      }
+      checkFieldsToReference(fields, 'output');
+    }
+  }
+
+
+  const prepareModels = models.filter((model) => !excludeModels.includes(model.name));
   for (const model of prepareModels) {
-    const _listPrepared = await generateClass(config, project, outputDir, model, config, foreignKeyMap);
+    const _listPrepared = await generateClass(config, project, outputDir, model, config, foreignKeyMap, referenceModels);
     if (_listPrepared?.length) {
       _listPrepared.forEach((name) => listPrepared.add(name));
     }

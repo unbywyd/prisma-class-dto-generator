@@ -32,24 +32,94 @@ export default async function generateClass(
   model: PrismaDMMF.Model,
   mainConfig: PrismaClassDTOGeneratorConfig,
   foreignKeyMap: Map<string, string>,
+  refs: Array<{ type: 'input' | 'output', name: string }>
 ) {
   const dirPath = path.resolve(outputDir, 'models');
 
+  const strictMode = config.strictMode || false;
+  let excludeOutputModels = config.output.excludeModels || [];
+  let excludeInutModels = config.input.excludeModels || [];
+
+  if (strictMode) {
+    let inputDeclaratedModels: Array<string> = [];
+
+    if (config.input.includeModelFields) {
+      const keys = Object.keys(config.input.includeModelFields);
+      for (const key of keys) {
+        if (!inputDeclaratedModels.includes(key)) {
+          inputDeclaratedModels.push(key);
+        }
+      }
+    }
+    if (config.input.extendModels) {
+      const keys = Object.keys(config.input.extendModels);
+      for (const key of keys) {
+        if (!inputDeclaratedModels.includes(key)) {
+          inputDeclaratedModels.push(key);
+        }
+      }
+    }
+    if (excludeInutModels.length) {
+      inputDeclaratedModels = inputDeclaratedModels.filter((model) => !excludeInutModels.includes(model));
+    }
+    if (!inputDeclaratedModels.includes(model.name)) {
+      excludeInutModels.push(model.name);
+    }
+
+    let outputDeclaratedModels: Array<string> = [];
+    if (config.output.includeModelFields) {
+      const keys = Object.keys(config.output.includeModelFields);
+      for (const key of keys) {
+        if (!outputDeclaratedModels.includes(key)) {
+          outputDeclaratedModels.push(key);
+        }
+      }
+    }
+    if (config.output.extendModels) {
+      const keys = Object.keys(config.output.extendModels);
+      for (const key of keys) {
+        if (!outputDeclaratedModels.includes(key)) {
+          outputDeclaratedModels.push(key);
+        }
+      }
+    }
+    if (config.output.excludeModels) {
+      outputDeclaratedModels = outputDeclaratedModels.filter((model) => !config.output.excludeModels.includes(model));
+    }
+    if (!outputDeclaratedModels.includes(model.name)) {
+      excludeOutputModels.push(model.name);
+    }
+  }
+
+  const isInputUsed = refs.find((ref) => ref.type === 'input' && ref.name === model.name);
+
+  if (isInputUsed && !config.input?.includeModelFields?.[model.name] && !config.input?.extendModels?.[model.name]) {
+    config.input.includeModelFields[model.name] = [];
+    console.log('Model', model.name, 'is used as input but not declared in config. Added to input models');
+    excludeInutModels = excludeInutModels.filter((name) => name !== model.name);
+    config.input.excludeModels = excludeInutModels;
+  }
 
 
-  // Генерация Input DTO
-  const excludeInutModels = config.input.excludeModels || [];
   if (!excludeInutModels.includes(model.name)) {
     generateDTO(config.input, project, dirPath, model, 'Input', config, foreignKeyMap);
   }
 
-  const excludeOutputModels = config.output.excludeModels || [];
-  if (!excludeOutputModels.includes(model.name)) {
-    // Генерация Output DTO
-    generateDTO(config.output, project, dirPath, model, 'Output', config, foreignKeyMap);
+  const isOutputUsed = refs.find((ref) => ref.type === 'output' && ref.name === model.name);
+
+  if (isOutputUsed && !config.output.includeModelFields?.[model.name] && !config.output.extendModels?.[model.name]) {
+    config.output.includeModelFields[model.name] = [];
+    console.log('Model', model.name, 'is used as output but not declared in config. Added to output models');
+    excludeOutputModels = excludeOutputModels.filter((name) => name !== model.name);
+    config.output.excludeModels = excludeOutputModels;
   }
 
 
+
+  if (!excludeOutputModels.includes(model.name) || isOutputUsed) {
+    // Генерация Output DTO
+    generateDTO(config.output, project, dirPath, model, 'Output', config, foreignKeyMap);
+  }
 
   const directives = getFieldDirectives(model.documentation);
 
@@ -94,21 +164,25 @@ function generateDTO(
     overwrite: true,
   });
 
+  const strictMode = mainConfig.strictMode || false;
+
   const excludeModelFields = config.excludeModelFields?.[model.name] || [];
 
 
   const excludeModels = [...mainConfig.excludeModels || [], ...config.excludeModels || []];
   const includeOnlyFields = config.includeModelFields?.[model.name] || [];
 
+
   const includeOnlyFieldNames = includeOnlyFields.map((field) => 'string' === typeof field ? field : field.name);
 
   const isFieldExclude = (field: PrismaDMMF.Field) => {
-    if (includeOnlyFieldNames.length > 0) {
+    if (includeOnlyFields.length > 0 || strictMode) {
       const isInclude = includeOnlyFieldNames.includes(field.name);
       if (!isInclude) {
         return true;
       }
     }
+
     if (field.relationName && excludeModels.includes(field.type)) {
       return true;
     }
