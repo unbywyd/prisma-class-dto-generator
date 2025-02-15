@@ -46,7 +46,7 @@ export interface FileFieldOptions {
   minSize?: string;
   maxFiles?: number;
   minFiles?: number;
-  mimeTypes?: RegExp[];
+  mimeTypes?: Array<string>; // RegExp strings
 }
 ```
 
