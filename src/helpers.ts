@@ -74,14 +74,13 @@ export const generateModelsIndexFile = (
     }
   );
 
-  const extraOptions = config.extra?.options || {};
 
   // Генерация экспортов для "расширенных" моделей
   const extraExports = extraModelNames.map<OptionalKind<ExportDeclarationStructure>>(
     (extraModelName) => ({
-      moduleSpecifier: extraOptions.skipExtraPrefix ? `./${extraModelName}DTO.model` : `./Extra${extraModelName}DTO.model`,
+      moduleSpecifier: `./${extraModelName}DTO.model`,
       namedExports: [
-        extraOptions.skipExtraPrefix ? `${extraModelName}DTO` : `Extra${extraModelName}DTO`
+        `${extraModelName}DTO`
       ],
     }),
   );
@@ -128,15 +127,10 @@ export const getTSDataTypeFromFieldType = (field: PrismaDMMF.Field, config: Pris
       break;
   }
 
-
   if (field.isList) {
     type = `${type}[]`;
   } else if (field.kind === 'object') {
     type = `${type}`;
-  }
-  const extraOptions = config.extra?.options || {};
-  if (field.kind === 'enum' && (field as any).isExtra) {
-    type = extraOptions.skipExtraPrefix ? type : `Extra${type}`;
   }
   return type;
 };
@@ -194,14 +188,7 @@ export const getDecoratorsByFieldType = (field: PrismaDMMF.Field, config: Prisma
   }
 
   if (field.kind === 'enum') {
-    const extraOptions = config.extra?.options || {};
-
-    if (extraOptions?.skipExtraPrefix) {
-      decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${field.type})`] });
-    } else {
-      const type = (field as any).isExtra ? `Extra${field.type}` : field.type;
-      decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${type})`] });
-    }
+    decorators.push({ name: 'IsIn', arguments: [`getEnumValues(${field.type})`] });
   }
 
   decorators.push({ name: 'Expose', arguments: [] });
@@ -279,30 +266,12 @@ export const generateEnumImports = (
   fields: PrismaDMMF.Field[],
   config: PrismaClassDTOGeneratorConfig,
 ) => {
-  const enumsToImport = fields
-    .filter((field) => field.kind === 'enum' && !(field as any)?.isExtra)
-    .map((field) => field.type);
-
-  const extraOptions = config.extra?.options || {};
-
-  const allEnumsToImport = [...enumsToImport];
-
-  if (!extraOptions.skipExtraPrefix) {
-    const extraEnumsToImport = fields.filter((field) => field.kind === 'enum' && (field as any)?.isExtra).map((field) => `Extra${field.type}`);
-    allEnumsToImport.push(...extraEnumsToImport);
-  } else {
-    const extraEnumsToImport = fields.filter((field) => field.kind === 'enum' && (field as any)?.isExtra).map((field) => field.type);
-    for (const extraEnum of extraEnumsToImport) {
-      if (!allEnumsToImport.includes(extraEnum)) {
-        allEnumsToImport.push(extraEnum);
-      }
-    }
-  }
-
+  const allEnumsToImport = Array.from(
+    new Set(fields.filter((field) => field.kind === 'enum').map((field) => field.type))
+  );
   if (allEnumsToImport.length > 0) {
     generateUniqueImports(sourceFile, allEnumsToImport, '../enums');
   }
-
 };
 
 export function generateEnumsIndexFile(

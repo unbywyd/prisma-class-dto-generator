@@ -10,7 +10,7 @@ export function generateExtraEnum(
     config: PrismaClassDTOGeneratorConfig,
 ) {
     const dirPath = path.resolve(outputDir, 'enums');
-    const name = config?.extra?.options?.skipExtraPrefix ? enumName : `Extra${enumName}`;
+    const name = enumName; //config?.extra?.options?.skipExtraPrefix ? enumName : `Extra${enumName}`;
     const filePath = path.resolve(dirPath, `${name}.enum.ts`);
     const sourceFile = project.createSourceFile(filePath, undefined, {
         overwrite: true,

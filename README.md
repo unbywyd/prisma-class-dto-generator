@@ -160,17 +160,11 @@ export type PrismaClassDTOGeneratorConfig = {
   input: PrismaClassDTOGeneratorModelConfig;
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
-  list?: {
+  lists?: {
     // Generate list DTOs
-    models: {
-      [modelName: string]: PrismaClassDTOGeneratorListModelConfig;
-    };
+    [modelName: string]: PrismaClassDTOGeneratorListModelConfig;
   };
   extra?: {
-    // Additional models and enums
-    options: {
-      skipExtraPrefix?: boolean; [NEW] // Skip adding 'Extra' prefix to extra models
-    };
     enums?: {
       [enumName: string]: {
         values: Array<string>;

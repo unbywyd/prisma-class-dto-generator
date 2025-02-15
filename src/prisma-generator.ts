@@ -38,15 +38,10 @@ export type PrismaClassDTOGeneratorConfig = {
   output: PrismaClassDTOGeneratorModelConfig;
   excludeModels?: string[];
   strictMode?: boolean;
-  list?: {
-    models: {
-      [modelName: string]: PrismaClassDTOGeneratorListModelConfig
-    }
+  lists?: {
+    [modelName: string]: PrismaClassDTOGeneratorListModelConfig
   },
   extra?: {
-    options: {
-      skipExtraPrefix?: boolean
-    },
     enums?: {
       [enumName: string]: {
         values: Array<string>
@@ -109,7 +104,7 @@ async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGenerato
     }
     if (!config.extra) {
       config.extra = {
-        options: {},
+        //options: {},
         enums: {},
         models: {}
       };
@@ -150,9 +145,6 @@ async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGenerato
     }
     if (!config.extra.models) {
       config.extra.models = {};
-    }
-    if (!config.extra.options) {
-      config.extra.options = {};
     }
 
     if (config.input?.includeRelations === undefined) {
@@ -214,13 +206,11 @@ export async function generate(options: GeneratorOptions) {
     generateEnum(project, outputDir, enumItem);
   });
 
-  const extraOptions = config.extra?.options || {};
 
   if (config.extra?.enums) {
     const keys = Object.keys(config.extra.enums);
     for (const key of keys) {
-      const name = extraOptions?.skipExtraPrefix ? key : 'Extra' + key;
-      enumNames.add(name);
+      enumNames.add(key);
     }
   }
 
@@ -247,7 +237,7 @@ export async function generate(options: GeneratorOptions) {
         if (field?.relationName && field.type) {
           if (!referenceModels.find((item) => item.name === field.type) && models.find((model) => model.name === field.type)) {
             referenceModels.push({ type, name: field.type });
-            if(excludeModels.includes(field.type)) {
+            if (excludeModels.includes(field.type)) {
               excludeModels = excludeModels.filter((model) => model !== field.type);
             }
           }
@@ -315,7 +305,7 @@ export async function generate(options: GeneratorOptions) {
   }
 
   const dirPath = path.resolve(outputDir, 'models');
-  const list = config.list?.models || {};
+  const list = config.lists || {};
   for (const [modelName, listConfig] of Object.entries(list)) {
     if (listPrepared.has(modelName)) {
       continue;

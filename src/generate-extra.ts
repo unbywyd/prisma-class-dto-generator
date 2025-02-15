@@ -32,8 +32,7 @@ export function generateExtraModel(
     modelName: string,
     modelConfig: { fields: Array<ExtraField>, type: "input" | "output" }
 ) {
-    const extraOptions = config.extra?.options || {};
-    const filePath = path.resolve(outputDir, 'models', extraOptions.skipExtraPrefix ? `${modelName}DTO.model.ts` : `Extra${modelName}DTO.model.ts`);
+    const filePath = path.resolve(outputDir, 'models', `${modelName}DTO.model.ts`);
     const sourceFile = project.createSourceFile(filePath, undefined, {
         overwrite: true,
     });
@@ -82,9 +81,7 @@ export function generateExtraModel(
 
     fields.forEach((field) => {
         if (field.relationName) {
-            // Генерируем имя связанного DTO
-            // Для extra моделей используется префикс "Extra"
-            const extraName = extraOptions?.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
+            const extraName = `${field.type}DTO`;
             const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
             const relativePath = `./${relatedDTOName}.model`;
 
@@ -124,7 +121,7 @@ export function generateExtraModel(
         let type = getTSDataTypeFromFieldType(field as any, config);
         if (field.relationName) {
             const isArray = field.isList;
-            const extraName = extraOptions?.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
+            const extraName = `${field.type}DTO`;
             const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
 
             type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
@@ -148,7 +145,7 @@ export function generateExtraModel(
     });
 
     // Создаём класс DTO
-    const extraName = extraOptions?.skipExtraPrefix ? `${modelName}DTO` : `Extra${modelName}DTO`;
+    const extraName = `${modelName}DTO`;
     const classDeclaration = sourceFile.addClass({
         name: extraName,
         isExported: true,

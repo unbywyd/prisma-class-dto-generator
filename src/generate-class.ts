@@ -137,7 +137,7 @@ export default async function generateClass(
 
   const listPrepared = [];
 
-  const listModels = (config.list?.models || {}) as Record<string, { pagination?: true; filters?: Array<string> }>;
+  const listModels = (config.lists || {}) as Record<string, { pagination?: true; filters?: Array<string> }>;
   if (directives.listable) {
     const configList = listModels[model.name] || {
       pagination: true,
@@ -296,12 +296,11 @@ function generateDTO(
   const referenceFields = fields.filter((field) => field.relationName);
 
 
-  const extraOptions = mainConfig.extra?.options || {};
+  //const extraOptions = mainConfig.extra?.options || {};
 
   // Отвечает за импорт
   referenceFields.forEach((field) => {
-    const extraName = extraOptions.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
-    const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${dtoType}${field.type}DTO`;
+    const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `${field.type}DTO` : `${dtoType}${field.type}DTO`;
     const relativePath = `./${relatedDTOName}.model`;
 
     if (isFieldExclude(field as PrismaDMMF.Field)) {
@@ -363,7 +362,7 @@ function generateDTO(
 
     if (field.relationName) {
       const isArray = field.isList;
-      const extraName = extraOptions.skipExtraPrefix ? `${field.type}DTO` : `Extra${field.type}DTO`;
+      const extraName = `${field.type}DTO`;
       const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${dtoType}${field.type}DTO`; // Генерация корректного имени
 
       const relativePath = `./${relatedDTOName}.model`; // Генерация пути к DTO
