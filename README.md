@@ -4,6 +4,25 @@
 [![GitHub Stars](https://img.shields.io/github/stars/unbywyd/prisma-class-dto-generator.svg?style=for-the-badge&logo=github)](https://github.com/unbywyd/prisma-class-dto-generator)
 [![GitHub License](https://img.shields.io/github/license/unbywyd/prisma-class-dto-generator.svg?style=for-the-badge)](https://github.com/unbywyd/prisma-class-dto-generator/blob/master/LICENSE)
 
+# ⚡ Prisma DTO Generator – Simplify DTO Configuration  
+
+🎛 **[Prisma DTO Generator](https://prisma-dto-generator.netlify.app/)** is an intuitive UI tool that helps generate DTO configurations for Prisma without manual edits. Define your settings visually, export a `generator-config.json`, and seamlessly integrate DTO generation into your workflow.  
+
+## 🔹 How It Works  
+📝 **1. Input Schema** – Paste or upload your **Prisma schema**.  
+⚙ **2. Configure** – The tool generates the corresponding **JSON configuration**.  
+💾 **3. Export** – Save it as `generator-config.json`.  
+🚀 **4. Generate DTOs** – Run `prisma generate` and get structured DTOs instantly.  
+
+## 🎯 Why Use It?  
+✅ **Error-Free** – Eliminates manual JSON editing.  
+✅ **Consistency** – Ensures uniform DTO structures.  
+✅ **Visual & Intuitive** – Quickly adjust configurations before applying changes.  
+
+🔗 **Try it now:** [prisma-dto-generator.netlify.app](https://prisma-dto-generator.netlify.app/)  
+
+
+
 A generator for [Prisma ORM](https://www.prisma.io/) that creates fully-typed Data Transfer Objects (DTOs) based on decorators from [`class-validator`](https://www.npmjs.com/package/class-validator) and [`class-transformer`](https://www.npmjs.com/package/class-transformer). It also provides a custom `@Entity` decorator for enhanced type support, enabling correct JSON schema generation. The resulting DTOs are ready for server-side TypeScript applications, and are well-suited for use with frameworks like [`routing-controllers`](https://www.npmjs.com/package/routing-controllers), [`routing-controllers-openapi`](https://www.npmjs.com/package/routing-controllers-openapi), and [`class-validator-jsonschema`](https://www.npmjs.com/package/class-validator-jsonschema).
 
 **Author:** [unbywyd](https://unbywyd.com)  
