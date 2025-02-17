@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/prisma-class-dto-generator.svg?style=for-the-badge)](https://www.npmjs.com/package/prisma-class-dto-generator)
 [![GitHub Stars](https://img.shields.io/github/stars/unbywyd/prisma-class-dto-generator.svg?style=for-the-badge&logo=github)](https://github.com/unbywyd/prisma-class-dto-generator)
-[![GitHub License](https://img.shields.io/github/license/unbywyd/prisma-class-dto-generator.svg?style=for-the-badge)](https://github.com/unbywyd/prisma-class-dto-generator/blob/master/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/unbywyd/prisma-class-dto-generator.svg?style=for-the-badge)](https://github.com/unbywyd/prisma-class-dto-generator/blob/master/LICENSE.md)
 
 # ⚡ Prisma DTO Generator – Simplify DTO Configuration  
 
