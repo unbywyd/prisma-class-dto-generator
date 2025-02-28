@@ -159,7 +159,9 @@ function generateDTO(
   mainConfig: PrismaClassDTOGeneratorConfig,
   foreignKeyMap: Map<string, string>,
 ) {
-  const filePath = path.resolve(dirPath, `${dtoType}${model.name}DTO.model.ts`);
+  const outputModelName = `${dtoType}${model.name}DTO`;
+  const filePath = path.resolve(dirPath, outputModelName + '.model.ts');
+
   const sourceFile = project.createSourceFile(filePath, undefined, {
     overwrite: true,
   });
@@ -168,7 +170,6 @@ function generateDTO(
 
   const excludeModelFields = config.excludeModelFields?.[model.name] || [];
 
-
   const excludeModels = [...mainConfig.excludeModels || [], ...config.excludeModels || []];
   const includeOnlyFields = config.includeModelFields?.[model.name] || [];
 
@@ -176,6 +177,16 @@ function generateDTO(
   const includeOnlyFieldNames = includeOnlyFields.map((field) => 'string' === typeof field ? field : field.name);
 
   const isFieldExclude = (field: PrismaDMMF.Field) => {
+    if (config?.excludeIdFields && field.isId) {
+      return true;
+    }
+    if (config?.excludeDateAtFields && field.type === 'DateTime' && field.name.toLowerCase().endsWith('at')) {
+      return true;
+    }
+    const referenceModelName = foreignKeyMap.get(`${model.name}.${field.name}`);
+    if (config?.excludeIdRelationFields && referenceModelName) {
+      return true;
+    }
     if (includeOnlyFields.length > 0 || strictMode) {
       const isInclude = includeOnlyFieldNames.includes(field.name);
       if (!isInclude) {
@@ -190,8 +201,6 @@ function generateDTO(
     const type = dtoType.toLowerCase();
     return config.excludeFields?.includes(field.name) || directives.exclude == type || excludeModelFields.includes(field.name);
   }
-
-
 
   let fields = model.fields.filter((field) => {
     return !isFieldExclude(field);
@@ -306,8 +315,7 @@ function generateDTO(
     if (isFieldExclude(field as PrismaDMMF.Field)) {
       return;
     }
-
-    if (!relationImports.has(relatedDTOName)) {
+    if (!relationImports.has(relatedDTOName) && outputModelName !== relatedDTOName) {
       relationImports.set(relatedDTOName, relativePath);
     }
   });
@@ -331,6 +339,12 @@ function generateDTO(
   const hasFilesType = fields.some((field) => field.type === 'File' && field.isList);
 
   const allFields = config.includeRelations ? fields : fields.filter((field) => !field.relationName).filter((field) => !isFieldExclude(field as PrismaDMMF.Field));
+
+
+  const cyclisFields = new Map<string, PrismaDMMF.Field>();
+
+  const processedModels = new Set<string>();
+  processedModels.add(model.name);
 
   const properties = allFields.map<OptionalKind<PropertyDeclarationStructure>>((field) => {
     const decorators = getDecoratorsByFieldType(field, mainConfig);
@@ -362,18 +376,35 @@ function generateDTO(
 
     if (field.relationName) {
       const isArray = field.isList;
-      const extraName = `${field.type}DTO`;
-      const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${dtoType}${field.type}DTO`; // Генерация корректного имени
+      const isCyclic = model.name == field.type;
+      const dtoSuffix = isCyclic ? 'ChildDTO' : 'DTO';
+      const extraName = `${field.type}${dtoSuffix}`;
+      let relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${dtoType}${field.type}${dtoSuffix}`;
+
 
       const relativePath = `./${relatedDTOName}.model`; // Генерация пути к DTO
       type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
-      decorators.push({
-        name: 'IsEntity',
-        arguments: [
-          `() => import('${relativePath}').then(m => m.${relatedDTOName})`,
-          `{ each: ${isArray} }`,
-        ],
-      });
+
+      if (!isCyclic) {
+        decorators.push({
+          name: 'IsEntity',
+          arguments: [
+            `() => import('${relativePath}').then(m => m.${relatedDTOName})`,
+            `{ each: ${isArray} }`,
+          ],
+        });
+      } else {
+        cyclisFields.set(field.name, field);
+
+        decorators.push({
+          name: 'IsEntity',
+          arguments: [
+            `() => ${relatedDTOName}`,
+            `{ each: ${isArray} }`,
+          ],
+        });
+      }
+
       decorators.push({
         name: 'ReferenceModel',
         arguments: [`"${field.type}"`],
@@ -416,8 +447,21 @@ function generateDTO(
     });
   }
 
+  if (cyclisFields.size > 0) {
+    const childProperties = properties.filter(prop => !cyclisFields.has(prop.name));
+    const childClassDeclaration = sourceFile.addClass({
+      name: `${dtoType}${model.name}ChildDTO`,
+      isExported: true,
+      properties: childProperties,
+    });
 
-
+    childClassDeclaration.addProperty({
+      name: 'className',
+      type: 'string',
+      isStatic: true,
+      initializer: `'${dtoType}${model.name}ChildDTO'`,
+    });
+  }
   // Создаём класс DTO
   const classDeclaration = sourceFile.addClass({
     name: `${dtoType}${model.name}DTO`,
@@ -431,4 +475,6 @@ function generateDTO(
     isStatic: true,
     initializer: `'${dtoType}${model.name}DTO'`,
   });
+
+
 }

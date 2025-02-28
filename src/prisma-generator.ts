@@ -13,6 +13,9 @@ import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
   excludeModels?: string[];
+  excludeIdFields?: boolean;
+  excludeDateAtFields?: boolean;
+  excludeIdRelationFields?: boolean;
   excludeModelFields?: {
     [modelName: string]: string[]
   };

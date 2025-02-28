@@ -24,9 +24,6 @@
 
 A generator for [Prisma ORM](https://www.prisma.io/) that creates fully-typed Data Transfer Objects (DTOs) based on decorators from [`class-validator`](https://www.npmjs.com/package/class-validator) and [`class-transformer`](https://www.npmjs.com/package/class-transformer). It also provides a custom `@Entity` decorator for enhanced type support, enabling correct JSON schema generation. The resulting DTOs are ready for server-side TypeScript applications, and are well-suited for use with frameworks like [`routing-controllers`](https://www.npmjs.com/package/routing-controllers), [`routing-controllers-openapi`](https://www.npmjs.com/package/routing-controllers-openapi), and [`class-validator-jsonschema`](https://www.npmjs.com/package/class-validator-jsonschema).
 
-**Author:** [unbywyd](https://unbywyd.com)  
-**License:** Free
-
 ---
 
 ## Features
