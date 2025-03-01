@@ -4,7 +4,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2019",
-    "lib": ["es2019"],
+    "lib": [
+      "es2019"
+    ],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "declaration": true,
@@ -12,9 +14,14 @@
     "resolveJsonModule": true,
     "outDir": "./lib",
     "rootDir": "./src",
-    "typeRoots": ["src/types.ts"],
+    "typeRoots": [
+      "src/types.ts"
+    ],
     "skipLibCheck": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
   },
-  "include": ["./src/**/**/*.ts"]
+  "include": [
+    "./src/**/**/*.ts"
+  ]
 }

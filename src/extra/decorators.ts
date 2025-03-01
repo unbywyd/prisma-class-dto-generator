@@ -5,6 +5,7 @@ import {
 import { Type } from "class-transformer";
 import { JSONSchema } from "class-validator-jsonschema";
 import { AsyncResolver } from "./async-resolver";
+import { getSyncQueueProvider } from "@tsdiapi/syncqueue";
 
 export function FixArrayJsonSchemaReference(reference: any): PropertyDecorator {
     return JSONSchema({
@@ -46,6 +47,7 @@ export function IsEntity(typeFunction: () => Promise<Function> | Function, optio
             }).catch(err => {
                 console.error("Error resolving type for property :" + String(propertyKey), err);
             });
+            getSyncQueueProvider().addTask(task);
             AsyncResolver.addTask(task);
         } else {
             Type(() => referenceType)(target, propertyKey);
