@@ -256,7 +256,7 @@ export const generateHelpersImports = (
   helpersImports: Array<string>,
 ) => {
   sourceFile.addImportDeclaration({
-    moduleSpecifier: 'routing-controllers-openapi-extra',
+    moduleSpecifier: 'prisma-class-dto-generator',
     namedImports: helpersImports,
   });
 };

@@ -52,7 +52,6 @@ A generator for [Prisma ORM](https://www.prisma.io/) that creates fully-typed Da
 - **File type support:** Custom decorators `@IsFile` and `@IsFiles` for file uploads, with options for file size, type, and more.
 
 ```typescript
-// From https://www.npmjs.com/package/routing-controllers-openapi-extra?activeTab=code
 // Options
 export interface FileFieldOptions {
   name?: string; // Field name
@@ -81,7 +80,7 @@ export interface FileFieldOptions {
         "name": "files",
         "type": "File", // Custom type
         "isList": true, // Array of files
-        "options": { // Options for each file (routing-controllers-openapi-extra)
+        "options": { // Options for each file
             "maxSize": "10mb",
             "maxFiles": 5
         }
@@ -89,7 +88,7 @@ export interface FileFieldOptions {
 ]
 
 // DTO:
-import { IsFile, IsFiles } from "routing-controllers-openapi-extra";
+import { IsFile, IsFiles } from "prisma-class-dto-generator";
 
 export class InputAppConfigDTO {
     @IsDefined()

@@ -442,7 +442,7 @@ function generateDTO(
       _imports.push('IsFiles');
     }
     sourceFile.addImportDeclaration({
-      moduleSpecifier: 'routing-controllers-openapi-extra',
+      moduleSpecifier: 'prisma-class-dto-generator',
       namedImports: _imports
     });
   }

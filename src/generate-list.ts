@@ -39,7 +39,7 @@ export function generateListDTO(
 
 
     sourceFile.addImportDeclaration({
-        moduleSpecifier: 'routing-controllers-openapi-extra',
+        moduleSpecifier: 'prisma-class-dto-generator',
         namedImports: ['IsEntity'],
     });
 
