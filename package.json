@@ -5,7 +5,7 @@
   "bin": {
     "prisma-class-dto-generator": "lib/generator.js"
   },
-  "main": "lib/index.js",
+  "main": "lib/generator.js",
   "type": "module",
   "scripts": {
     "build": "tsc"
