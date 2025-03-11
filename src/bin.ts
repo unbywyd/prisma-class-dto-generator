@@ -22,7 +22,7 @@ const options = parseArgs(args);
 // Handling --help and --version flags
 if (options.help || options.h) {
     console.log(`
-Usage: prismadto --path=[path_to_schema]
+Usage: prismadtogen --path=[path_to_schema]
 
 Options:
   --help, -h            Show this help message
