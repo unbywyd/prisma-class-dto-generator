@@ -1,14 +1,15 @@
-import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
-import { getDMMF, parseEnvValue } from '@prisma/internals';
+import pkg from '@prisma/internals';
+const { getDMMF } = pkg;
 import { promises as fs } from 'fs';
 import path from 'path';
 import generateClass, { PrismaClassDTOGeneratorField } from './generate-class.js';
 import generateEnum from './generate-enum.js';
 import { generateEnumsIndexFile, generateModelsIndexFile } from './helpers.js';
 import { project } from './project.js';
-import removeDir from './utils/removeDir.js';
 import { generateListDTO } from './generate-list.js';
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
+import fsExtra from 'fs-extra';
+import { loadPrismaSchema } from './prisma-schema-loader.js';
 
 export type PrismaClassDTOGeneratorModelConfig = {
   excludeFields?: string[];
@@ -81,7 +82,6 @@ function buildForeignKeyMap(dmmf: PrismaDMMF.Document): Map<string, string> {
 
   return foreignKeyMap;
 }
-
 
 async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGeneratorConfig> {
   const res = (config: Partial<PrismaClassDTOGeneratorConfig>): PrismaClassDTOGeneratorConfig => {
@@ -181,26 +181,41 @@ async function parseConfig(absolutePath: string): Promise<PrismaClassDTOGenerato
 
 }
 
+export type GeneratorOptions = {
+  schemaPath?: string,
+  cwd?: string,
+  output?: string
+}
+
 export async function generate(options: GeneratorOptions) {
-  const outputDir = parseEnvValue(options.generator.output as EnvValue);
-  await fs.mkdir(outputDir, { recursive: true });
-  await removeDir(outputDir, true);
+  let prismaLoaded = null;
+  try {
+    prismaLoaded = await loadPrismaSchema(options.cwd || process.cwd(), options.schemaPath);
+  } catch (e) {
+    console.error(e);
+    return;
+  }
 
-  const configRelativeFilePath = options?.generator?.config?.configPath as string || '';
+  const prismaPath = prismaLoaded.path;
+  const prismaCWD = path.dirname(prismaPath);
+  const outputDir = path.resolve(prismaCWD, options.output || 'dto_generated');
+  await fsExtra.emptyDir(outputDir);
 
-  const schemaDir = path.dirname(options.schemaPath);
-  const configFilePath = path.resolve(schemaDir, configRelativeFilePath, 'generator-config.json');
-
-  const config = await parseConfig(configFilePath);
-
-
-  const prismaClientProvider = options.otherGenerators.find(
-    (it) => parseEnvValue(it.provider) === 'prisma-client-js',
-  );
+  const configFilePath = path.resolve(prismaCWD, 'generator-config.json');
+  if (!fsExtra.existsSync(configFilePath)) {
+    console.error('Config file not found, please create generator-config.json in prisma directory');
+    return;
+  }
+  let config = null;
+  try {
+    config = await parseConfig(configFilePath);
+  } catch (e) {
+    console.error(`Error parsing config file: ${e.message}`);
+    return;
+  }
 
   const prismaClientDmmf = await getDMMF({
-    datamodel: options.datamodel,
-    previewFeatures: prismaClientProvider?.previewFeatures,
+    datamodel: prismaLoaded.schema,
   });
 
   const enumNames = new Set<string>();

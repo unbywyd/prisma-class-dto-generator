@@ -1,4 +1,3 @@
-import { GeneratorOptions } from '@prisma/generator-helper';
 import { PrismaClassDTOGeneratorField } from './generate-class.js';
 export type PrismaClassDTOGeneratorModelConfig = {
     excludeFields?: string[];
@@ -47,5 +46,10 @@ export type PrismaClassDTOGeneratorConfig = {
             };
         };
     };
+};
+export type GeneratorOptions = {
+    schemaPath?: string;
+    cwd?: string;
+    output?: string;
 };
 export declare function generate(options: GeneratorOptions): Promise<void>;

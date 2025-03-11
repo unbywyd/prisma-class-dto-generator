@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2019",
+    "target": "ES2022",
     "lib": [
-      "es2019"
+      "ES2022"
     ],
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true,
     "outDir": "./lib",
     "rootDir": "./src",
-    "typeRoots": [
-      "src/types.ts"
-    ],
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
