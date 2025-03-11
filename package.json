@@ -3,7 +3,7 @@
   "version": "7.0.0",
   "description": "Generate Prisma DTOs with seamless class-validator and class-transformer integration for TypeScript applications.",
   "bin": {
-    "prisma-class-dto-generator": "lib/index.js"
+    "prisma-class-dto-generator": "lib/bin.js"
   },
   "main": "lib/generator.js",
   "type": "module",

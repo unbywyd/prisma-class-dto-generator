@@ -1,14 +1,5 @@
-#! /usr/bin/env node
-export * from "./generator.js";
-
-import { generatorHandler } from '@prisma/generator-helper';
-import { generate } from './prisma-generator.js';
-
-generatorHandler({
-  onManifest: () => ({
-    defaultOutput: './generated',
-    prettyName: 'Prisma Class DTO Generator',
-    requiresGenerators: ['prisma-client-js'],
-  }),
-  onGenerate: generate,
-});
+export * from "./utils/toDTO.js";
+export * from "./extra/async-resolver.js";
+export * from "./extra/decorators.js";
+export * from "./extra/files.js";
+export * from "./utils/getEnumValues.js";
