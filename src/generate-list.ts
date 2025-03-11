@@ -1,9 +1,9 @@
 import { Project } from "ts-morph";
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 import path from 'path';
-import { generateEnumImports, generateHelpersImports, getDecoratorsByFieldType, getFieldDirectives, getTSDataTypeFromFieldType, shouldImportHelpers } from "./helpers";
-import { PrismaClassDTOGeneratorField } from "./generate-class";
-import { PrismaClassDTOGeneratorConfig, PrismaClassDTOGeneratorListModelConfig } from "./prisma-generator";
+import { generateEnumImports, generateHelpersImports, getDecoratorsByFieldType, getFieldDirectives, getTSDataTypeFromFieldType, shouldImportHelpers } from "./helpers.js";
+import { PrismaClassDTOGeneratorField } from "./generate-class.js";
+import { PrismaClassDTOGeneratorConfig, PrismaClassDTOGeneratorListModelConfig } from "./prisma-generator.js";
 
 export function generateListDTO(
     config: PrismaClassDTOGeneratorListModelConfig,
@@ -46,7 +46,7 @@ export function generateListDTO(
 
 
     sourceFile.addImportDeclaration({
-        moduleSpecifier: `./${itemsModelName}DTO.model`,
+        moduleSpecifier: `./${itemsModelName}DTO.model.js`,
         namedImports: [`${itemsModelName}DTO`],
     });
 
@@ -221,7 +221,7 @@ export function generateListDTO(
                     {
                         name: 'IsEntity',
                         arguments: [
-                            `() => import('./${itemsModelName}DTO.model').then(m => m.${itemsModelName}DTO)`,
+                            `() => import('./${itemsModelName}DTO.model.js').then(m => m.${itemsModelName}DTO)`,
                             '{ each: true }',
                         ],
                     },

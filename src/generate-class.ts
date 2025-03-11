@@ -7,18 +7,17 @@ import {
   generateHelpersImports,
   generatePrismaImport,
   generateClassTransformerImport,
-  generateRelationImportsImport,
   getDecoratorsByFieldType,
   getDecoratorsImportsByType,
   getTSDataTypeFromFieldType,
   shouldImportHelpers,
   shouldImportPrisma,
   getFieldDirectives,
-} from './helpers';
-import { PrismaClassDTOGeneratorConfig } from './prisma-generator';
-import { generateListDTO } from './generate-list';
-import { generateExtraModel } from './generate-extra';
-import { generateExtraEnum } from './generate-extra-enums';
+} from './helpers.js';
+import { PrismaClassDTOGeneratorConfig } from './prisma-generator.js';
+import { generateListDTO } from './generate-list.js';
+import { generateExtraModel } from './generate-extra.js';
+import { generateExtraEnum } from './generate-extra-enums.js';
 
 export type PrismaClassDTOGeneratorField = PrismaDMMF.Field & {
   isExtra?: boolean;

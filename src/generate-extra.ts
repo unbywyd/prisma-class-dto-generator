@@ -2,12 +2,11 @@ import { Project, OptionalKind, PropertyDeclarationStructure } from "ts-morph";
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 
 import path from "path";
-import { PrismaClassDTOGeneratorConfig } from "./prisma-generator";
+import { PrismaClassDTOGeneratorConfig } from "./prisma-generator.js";
 import {
     getDecoratorsByFieldType,
     getDecoratorsImportsByType,
     getTSDataTypeFromFieldType,
-    getFieldDirectives,
     shouldImportPrisma,
     shouldImportHelpers,
     generateClassValidatorImport,
@@ -15,8 +14,8 @@ import {
     generatePrismaImport,
     generateHelpersImports,
     generateEnumImports
-} from "./helpers";
-import { PrismaClassDTOGeneratorField } from "./generate-class";
+} from "./helpers.js";
+import { PrismaClassDTOGeneratorField } from "./generate-class.js";
 
 type ExtraField = Partial<PrismaDMMF.Field> & {
     name: string;

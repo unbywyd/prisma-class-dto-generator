@@ -4,7 +4,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { JSONSchema } from "class-validator-jsonschema";
-import { AsyncResolver } from "./async-resolver";
+import { AsyncResolver } from "./async-resolver.js";
 import { getSyncQueueProvider } from "@tsdiapi/syncqueue";
 
 export function FixArrayJsonSchemaReference(reference: any): PropertyDecorator {

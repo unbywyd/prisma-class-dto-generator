@@ -1,12 +1,12 @@
 
 import { IsArray, IsDefined, IsOptional } from "class-validator";
 import { validationMetadatasToSchemas, JSONSchema } from "class-validator-jsonschema";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BadRequestError, createParamDecorator, UseBefore } from "routing-controllers";
 import multer from "multer";
 import bytes from "bytes";
 import { OpenAPI } from "routing-controllers-openapi";
-import { toDTO } from "../utils/toDTO";
+import { toDTO } from "../utils/toDTO.js";
 
 export function parseFileSize(value: string | number): number {
     if (typeof value === "number") {

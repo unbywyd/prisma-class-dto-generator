@@ -1,8 +1,8 @@
 #! /usr/bin/env node
-export * from "./utils/toDTO";
-export * from "./extra/async-resolver";
-export * from "./extra/decorators";
-export * from "./extra/files";
-export * from "./utils/getEnumValues";
+export * from "./utils/toDTO.js";
+export * from "./extra/async-resolver.js";
+export * from "./extra/decorators.js";
+export * from "./extra/files.js";
+export * from "./utils/getEnumValues.js";
 
 import "./index";

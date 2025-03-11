@@ -1,6 +1,6 @@
 import { Project, OptionalKind, EnumMemberStructure } from 'ts-morph';
 import path from 'path';
-import { PrismaClassDTOGeneratorConfig } from './prisma-generator';
+import { PrismaClassDTOGeneratorConfig } from './prisma-generator.js';
 
 export function generateExtraEnum(
     project: Project,

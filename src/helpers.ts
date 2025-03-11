@@ -7,7 +7,7 @@ import {
   Project,
   SourceFile,
 } from 'ts-morph';
-import { PrismaClassDTOGeneratorConfig } from './prisma-generator';
+import { PrismaClassDTOGeneratorConfig } from './prisma-generator.js';
 
 function generateUniqueImports(sourceFile: SourceFile, imports: string[], moduleSpecifier: string) {
   let existingImport = sourceFile.getImportDeclaration(moduleSpecifier);
@@ -41,31 +41,26 @@ export const generateModelsIndexFile = (
   const excludeInputModels = config?.input?.excludeModels || [];
   const excludeOutputModels = config?.output?.excludeModels || [];
 
-  // Сбор имён стандартных моделей
   const modelNames = prismaClientDmmf.datamodel.models.map((model) => model.name).filter((name) => !excludeModels.includes(name));
 
-  // Сбор имён "расширенных" моделей (extend models)
   const extraModelNames = config.extra?.models
     ? Object.keys(config.extra.models)
     : [];
 
-  // Генерация экспортов для стандартных моделей (Input и Output)
   const standardExports = modelNames.flatMap<OptionalKind<ExportDeclarationStructure>>(
     (modelName) => {
       const exports: OptionalKind<ExportDeclarationStructure>[] = [];
 
-      // Добавляем экспорт Input модели, если она не исключена
       if (!excludeInputModels.includes(modelName)) {
         exports.push({
-          moduleSpecifier: `./Input${modelName}DTO.model`,
+          moduleSpecifier: `./Input${modelName}DTO.model.js`,
           namedExports: [`Input${modelName}DTO`],
         });
       }
 
-      // Добавляем экспорт Output модели, если она не исключена
       if (!excludeOutputModels.includes(modelName)) {
         exports.push({
-          moduleSpecifier: `./Output${modelName}DTO.model`,
+          moduleSpecifier: `./Output${modelName}DTO.model.js`,
           namedExports: [`Output${modelName}DTO`],
         });
       }
@@ -75,17 +70,15 @@ export const generateModelsIndexFile = (
   );
 
 
-  // Генерация экспортов для "расширенных" моделей
   const extraExports = extraModelNames.map<OptionalKind<ExportDeclarationStructure>>(
     (extraModelName) => ({
-      moduleSpecifier: `./${extraModelName}DTO.model`,
+      moduleSpecifier: `./${extraModelName}DTO.model.js`,
       namedExports: [
         `${extraModelName}DTO`
       ],
     }),
   );
 
-  // Добавляем экспорты в файл
   modelsBarrelExportSourceFile.addExportDeclarations([
     ...standardExports,
     ...extraExports,
@@ -138,7 +131,6 @@ export const getTSDataTypeFromFieldType = (field: PrismaDMMF.Field, config: Pris
 export const getDecoratorsByFieldType = (field: PrismaDMMF.Field, config: PrismaClassDTOGeneratorConfig) => {
   const decorators: OptionalKind<DecoratorStructure>[] = [];
 
-  // Добавление валидаторов на основе типа
   switch (field.type) {
     case 'Int':
       decorators.push({ name: 'IsInt', arguments: [] });
@@ -318,7 +310,6 @@ export function getFieldDirectives(documentation: string | undefined): FieldDire
     orderable: false,
     exclude: undefined,
   };
-  // Проверяем наличие ключевых директив
   directives.filterable = /@filterable/.test(documentation);
   directives.listable = /@listable/.test(documentation);
   directives.orderable = /@orderable/.test(documentation);

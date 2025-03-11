@@ -2,12 +2,12 @@ import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { getDMMF, parseEnvValue } from '@prisma/internals';
 import { promises as fs } from 'fs';
 import path from 'path';
-import generateClass, { PrismaClassDTOGeneratorField } from './generate-class';
-import generateEnum from './generate-enum';
-import { generateEnumsIndexFile, generateModelsIndexFile } from './helpers';
-import { project } from './project';
-import removeDir from './utils/removeDir';
-import { generateListDTO } from './generate-list';
+import generateClass, { PrismaClassDTOGeneratorField } from './generate-class.js';
+import generateEnum from './generate-enum.js';
+import { generateEnumsIndexFile, generateModelsIndexFile } from './helpers.js';
+import { project } from './project.js';
+import removeDir from './utils/removeDir.js';
+import { generateListDTO } from './generate-list.js';
 import type { DMMF as PrismaDMMF } from '@prisma/generator-helper';
 
 export type PrismaClassDTOGeneratorModelConfig = {
