@@ -18,6 +18,11 @@
   "engines": {
     "node": ">=18.19.0"
   },
+  "files": [
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "prisma",
     "prisma-client",
