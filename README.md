@@ -5,9 +5,9 @@
 
 ## ⚡ Prisma DTO Generator – CLI & Programmatic Usage
 
-Starting from **version 7.0.0**, `prisma-class-dto-generator` is no longer a Prisma generator but a **standalone CLI tool and library** that can be used independently. The package has been migrated to **ESM (ECMAScript Modules) with NextNode** to ensure compatibility with modern Node.js environments.
+❗🔴❗ Starting from **version 7.0.0**, `prisma-class-dto-generator` is no longer a Prisma generator but a **standalone CLI tool and library** that can be used independently. The package has been migrated to **ESM (ECMAScript Modules) with NextNode** to ensure compatibility with modern Node.js environments.
 
-**[Prisma DTO Generator](https://prisma-dto-generator.netlify.app/)** is an intuitive UI tool that helps generate DTO configurations for Prisma without manual edits. Define your settings visually, export a `generator-config.json`, and seamlessly integrate DTO generation into your workflow.  
+**[New: Prisma DTO Generator UI Constructor](https://prisma-dto-generator.netlify.app/)** is an intuitive UI tool that helps generate DTO configurations for Prisma without manual edits. Define your settings visually, export a `generator-config.json`, and seamlessly integrate DTO generation into your workflow.  
 
 
 ## 🔹 How It Works
