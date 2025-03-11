@@ -3,12 +3,13 @@
   "version": "7.0.0",
   "description": "Generate Prisma DTOs with seamless class-validator and class-transformer integration for TypeScript applications.",
   "bin": {
-    "prisma-class-dto-generator": "lib/generator.js"
+    "prisma-class-dto-generator": "lib/cjs/generator.сjs"
   },
-  "main": "lib/generator.js",
+  "main": "lib/cjs/generator.сjs",
+  "module": "lib/generator.js",
   "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc & tsup"
   },
   "author": {
     "name": "Artyom Gorlovetskiy",
@@ -52,17 +53,19 @@
     "@types/express": "^5.0.0",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.10",
+    "replace-in-file": "^8.3.0",
     "tslib": "^2.6.2",
+    "tsup": "^8.4.0",
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "@prisma/client": "^6.0.0",
-    "prisma": "^6.0.0",
-    "routing-controllers": "^0.11.0",
-    "routing-controllers-openapi": "^5.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "class-validator-jsonschema": "^5.0.1"
+    "class-validator-jsonschema": "^5.0.1",
+    "prisma": "^6.0.0",
+    "routing-controllers": "^0.11.0",
+    "routing-controllers-openapi": "^5.0.0"
   },
   "repository": {
     "type": "git",
