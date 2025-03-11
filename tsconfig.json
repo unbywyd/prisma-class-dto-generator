@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2022",
+    "target": "es2019",
     "lib": [
-      "ES2022"
+      "es2019"
     ],
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -14,6 +14,9 @@
     "resolveJsonModule": true,
     "outDir": "./lib",
     "rootDir": "./src",
+    "typeRoots": [
+      "src/types.ts"
+    ],
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
