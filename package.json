@@ -53,8 +53,8 @@
   "peerDependencies": {
     "@prisma/client": "^6.0.0",
     "prisma": "^6.0.0",
-    "routing-controllers": "^0.10.4",
-    "routing-controllers-openapi": "^4.1.0",
+    "routing-controllers": "^0.11.0",
+    "routing-controllers-openapi": "^5.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "class-validator-jsonschema": "^5.0.1"
