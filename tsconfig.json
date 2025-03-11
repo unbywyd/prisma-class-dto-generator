@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2022",
@@ -8,7 +8,7 @@
       "ES2022"
     ],
     "noImplicitAny": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true,
