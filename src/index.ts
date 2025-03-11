@@ -1,3 +1,6 @@
+#! /usr/bin/env node
+export * from "./generator.js";
+
 import { generatorHandler } from '@prisma/generator-helper';
 import { generate } from './prisma-generator.js';
 
