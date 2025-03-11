@@ -82,7 +82,7 @@ export function generateExtraModel(
         if (field.relationName) {
             const extraName = `${field.type}DTO`;
             const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
-            const relativePath = `./${relatedDTOName}.model`;
+            const relativePath = `./${relatedDTOName}.model.js`;
 
             if (!relationImports.has(relatedDTOName)) {
                 relationImports.set(relatedDTOName, relativePath);
@@ -124,7 +124,7 @@ export function generateExtraModel(
             const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${oiType}${field.type}DTO`;
 
             type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
-            const relativePath = `./${relatedDTOName}.model`;
+            const relativePath = `./${relatedDTOName}.model.js`;
             decorators.push({
                 name: 'IsEntity',
                 arguments: [

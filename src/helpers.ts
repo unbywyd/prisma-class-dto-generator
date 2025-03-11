@@ -262,7 +262,7 @@ export const generateEnumImports = (
     new Set(fields.filter((field) => field.kind === 'enum').map((field) => field.type))
   );
   if (allEnumsToImport.length > 0) {
-    generateUniqueImports(sourceFile, allEnumsToImport, '../enums');
+    generateUniqueImports(sourceFile, allEnumsToImport, '../enums/index.js');
   }
 };
 

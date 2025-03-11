@@ -309,7 +309,7 @@ function generateDTO(
   // Отвечает за импорт
   referenceFields.forEach((field) => {
     const relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? `${field.type}DTO` : `${dtoType}${field.type}DTO`;
-    const relativePath = `./${relatedDTOName}.model`;
+    const relativePath = `./${relatedDTOName}.model.js`;
 
     if (isFieldExclude(field as PrismaDMMF.Field)) {
       return;
@@ -381,7 +381,7 @@ function generateDTO(
       let relatedDTOName = (field as PrismaClassDTOGeneratorField).isExtra ? extraName : `${dtoType}${field.type}${dtoSuffix}`;
 
 
-      const relativePath = `./${relatedDTOName}.model`; // Генерация пути к DTO
+      const relativePath = `./${relatedDTOName}.model.js`; // Генерация пути к DTO
       type = isArray ? `${relatedDTOName}[]` : relatedDTOName;
 
       if (!isCyclic) {
