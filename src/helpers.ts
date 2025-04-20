@@ -272,7 +272,7 @@ export function generateEnumsIndexFile(
 ) {
   sourceFile.addExportDeclarations(
     enumNames.sort().map<OptionalKind<ExportDeclarationStructure>>((name) => ({
-      moduleSpecifier: `./${name}.enum`,
+      moduleSpecifier: `./${name}.enum.js`,
       namedExports: [name],
     })),
   );
